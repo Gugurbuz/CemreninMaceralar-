@@ -354,17 +354,17 @@ export const getBossLevelEnemies = (): Enemy[] => [
     // THE BOSS: Aurora Guardian - simplified for better visuals
     {
         id: 999,
-        position: { x: 2800, y: 400 },
+        position: { x: 3800, y: 400 },
         size: { width: 150, height: 200 },
         type: 'boss',
         color: '#94a3b8', // Softer slate color
-        health: 15, // Reduced health for faster, less tiring fight
-        maxHealth: 15,
+        health: 8, // Reduced health for easier fight
+        maxHealth: 8,
         phase: 1,
         attackTimer: 0,
-        originalX: 2800,
-        patrolDistance: 600, // Smaller patrol for less chaos
-        speed: 1.5, // Slower movement
+        originalX: 3800,
+        patrolDistance: 400, // Smaller patrol area
+        speed: 1.2, // Slower movement
         direction: 1
     }
 ];

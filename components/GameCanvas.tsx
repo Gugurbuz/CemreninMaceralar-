@@ -709,7 +709,7 @@ export const GameCanvas: React.FC = () => {
                         >
                           <span className="text-4xl mb-2">👹</span>
                           <span>Bölüm 4</span>
-                          <span className="text-sm font-normal mt-1 opacity-90">Boss Savaşı</span>
+                          <span className="text-sm font-normal mt-1 opacity-90">Aurora Koruyucusu</span>
                         </button>
                     </div>
                     <button 
