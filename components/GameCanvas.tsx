@@ -145,6 +145,13 @@ export const GameCanvas: React.FC = () => {
       };
   }, []);
 
+  // Stop music on game end
+  useEffect(() => {
+      if (gameStatus === 'won' || gameStatus === 'gameover') {
+          soundManager.stopBGM();
+      }
+  }, [gameStatus]);
+
   const triggerDialog = (lines: {name:string, text:string}[]) => {
       if (dialogTimeoutRef.current) clearTimeout(dialogTimeoutRef.current);
       setDialogText(lines);
@@ -278,7 +285,7 @@ export const GameCanvas: React.FC = () => {
         } else if (prev === 'paused') {
             gameState.current.status = 'playing';
             soundManager.resume();
-            soundManager.startBGM();
+            soundManager.startBGM(gameState.current.level);
             return 'playing';
         }
         return prev;
@@ -341,9 +348,11 @@ export const GameCanvas: React.FC = () => {
     gameState.current.players = players;
 
     loadLevel(level);
-    
+
     gameState.current.status = 'playing';
     setGameStatus('playing');
+
+    soundManager.startBGM(level);
 
     if (level === 1) {
         triggerDialog([
@@ -557,8 +566,12 @@ export const GameCanvas: React.FC = () => {
                     >
                         🔄 Yeniden Başlat
                     </button>
-                    <button 
-                        onClick={() => { setGameStatus('menu'); setMenuStep('mode_select'); }}
+                    <button
+                        onClick={() => {
+                            soundManager.stopBGM();
+                            setGameStatus('menu');
+                            setMenuStep('mode_select');
+                        }}
                         className="bg-gray-500 hover:bg-gray-600 text-white py-4 rounded-xl font-bold text-xl shadow-lg transition-transform hover:scale-105"
                     >
                         🏠 Menüye Dön
@@ -732,8 +745,9 @@ export const GameCanvas: React.FC = () => {
             <h1 className="text-6xl font-black text-green-300 drop-shadow-lg mb-4">✨ TEBRİKLER! ✨</h1>
             <p className="text-2xl font-bold mb-8 text-sky-200">Bütün bölümleri bitirdiniz!</p>
             <div className="text-4xl font-mono mb-8 bg-black/20 px-8 py-2 rounded-lg border border-white/20">Puan: {hudState.score}</div>
-            <button 
+            <button
               onClick={() => {
+                  soundManager.stopBGM();
                   setGameStatus('menu');
                   setMenuStep('mode_select');
               }}
@@ -755,8 +769,9 @@ export const GameCanvas: React.FC = () => {
                 >
                   Tekrar Dene ↺
                 </button>
-                <button 
+                <button
                   onClick={() => {
+                      soundManager.stopBGM();
                       setGameStatus('menu');
                       setMenuStep('mode_select');
                   }}

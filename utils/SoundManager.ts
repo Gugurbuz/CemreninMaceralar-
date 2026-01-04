@@ -5,19 +5,37 @@ export class SoundManager {
     private isMuted: boolean = false;
     private bgmInterval: number | null = null;
     private melodyIndex: number = 0;
-    
-    // Simple happy melody loop (C Majorish)
-    // Frequency, Duration (beats)
-    private melody = [
-       {f: 261.63, d: 0.5}, {f: 329.63, d: 0.5}, {f: 392.00, d: 0.5}, {f: 523.25, d: 1}, // C E G C
-       {f: 392.00, d: 0.5}, {f: 329.63, d: 0.5}, {f: 261.63, d: 1}, // G E C
-       {f: 293.66, d: 0.5}, {f: 349.23, d: 0.5}, {f: 440.00, d: 0.5}, {f: 587.33, d: 1}, // D F A D
-       {f: 440.00, d: 0.5}, {f: 349.23, d: 0.5}, {f: 293.66, d: 1}, // A F D
-       {f: 392.00, d: 0.5}, {f: 329.63, d: 0.5}, {f: 261.63, d: 1}, // G E C
-       {f: 349.23, d: 0.5}, {f: 293.66, d: 0.5}, {f: 261.63, d: 2}, // F D C
+
+    // Level 1: Northern Lights - Mystical, ethereal melody (E minor pentatonic)
+    private level1Melody = [
+       {f: 329.63, d: 1}, {f: 392.00, d: 0.5}, {f: 493.88, d: 0.5}, {f: 587.33, d: 1}, // E G B D
+       {f: 493.88, d: 0.5}, {f: 392.00, d: 0.5}, {f: 329.63, d: 1.5}, {f: 293.66, d: 0.5}, // B G E D
+       {f: 329.63, d: 0.5}, {f: 392.00, d: 0.5}, {f: 587.33, d: 1}, {f: 493.88, d: 1}, // E G D B
+       {f: 392.00, d: 0.5}, {f: 329.63, d: 1.5}, {f: 293.66, d: 2}, // G E D
     ];
+
+    // Level 2: Butterfly Valley - Light, floating melody (C Major)
+    private level2Melody = [
+       {f: 523.25, d: 0.25}, {f: 587.33, d: 0.25}, {f: 659.25, d: 0.5}, {f: 587.33, d: 0.5}, {f: 523.25, d: 0.5}, // C D E D C
+       {f: 493.88, d: 0.5}, {f: 523.25, d: 0.5}, {f: 587.33, d: 1}, // B C D
+       {f: 659.25, d: 0.25}, {f: 783.99, d: 0.25}, {f: 880.00, d: 0.5}, {f: 783.99, d: 0.5}, {f: 659.25, d: 0.5}, // E G A G E
+       {f: 587.33, d: 0.5}, {f: 523.25, d: 1.5}, // D C
+       {f: 392.00, d: 0.5}, {f: 440.00, d: 0.5}, {f: 493.88, d: 0.5}, {f: 523.25, d: 1.5}, // G A B C
+    ];
+
+    // Level 3: Fruit Paradise - Tropical, upbeat melody (G Major)
+    private level3Melody = [
+       {f: 392.00, d: 0.5}, {f: 493.88, d: 0.5}, {f: 587.33, d: 0.5}, {f: 392.00, d: 0.5}, // G B D G
+       {f: 440.00, d: 0.5}, {f: 523.25, d: 0.5}, {f: 659.25, d: 1}, // A C E
+       {f: 587.33, d: 0.5}, {f: 493.88, d: 0.5}, {f: 440.00, d: 0.5}, {f: 392.00, d: 0.5}, // D B A G
+       {f: 329.63, d: 0.5}, {f: 392.00, d: 0.5}, {f: 493.88, d: 1}, // E G B
+       {f: 523.25, d: 0.5}, {f: 587.33, d: 0.5}, {f: 659.25, d: 0.5}, {f: 783.99, d: 1.5}, // C D E G
+    ];
+
+    private melody = this.level1Melody;
     private noteTime: number = 0;
     private tempo: number = 140; // BPM
+    private currentLevel: number = 1;
 
     constructor() {
         if (typeof window !== 'undefined') {
@@ -153,8 +171,28 @@ export class SoundManager {
         });
     }
 
-    startBGM() {
+    setLevel(level: number) {
+        this.currentLevel = level;
+        if (level === 1) {
+            this.melody = this.level1Melody;
+            this.tempo = 120; // Slower, mystical
+        } else if (level === 2) {
+            this.melody = this.level2Melody;
+            this.tempo = 150; // Light and flowing
+        } else if (level === 3) {
+            this.melody = this.level3Melody;
+            this.tempo = 160; // Upbeat and tropical
+        } else {
+            this.melody = this.level1Melody;
+            this.tempo = 140;
+        }
+    }
+
+    startBGM(level?: number) {
         if (!this.ctx) return;
+        if (level !== undefined) {
+            this.setLevel(level);
+        }
         this.stopBGM();
         this.noteTime = this.ctx.currentTime + 0.1;
         this.melodyIndex = 0;
