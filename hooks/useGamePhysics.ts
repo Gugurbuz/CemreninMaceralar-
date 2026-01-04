@@ -1,10 +1,10 @@
 
 import React, { useCallback } from 'react';
-import { GameState, InputState, Player, Platform, Particle, EffectParticle } from '../types';
-import { 
+import { GameState, InputState, Player, Platform, Particle, EffectParticle, Enemy } from '../types';
+import {
     GRAVITY, TERMINAL_VELOCITY, FRICTION, ICE_FRICTION, WIND_FORCE,
     CANVAS_WIDTH, CANVAS_HEIGHT, HOT_CHOCOLATE_DURATION,
-    LEVEL_1_WIDTH, LEVEL_2_WIDTH, COYOTE_TIME, JUMP_BUFFER, INITIAL_RESPAWN_POINT
+    LEVEL_1_WIDTH, LEVEL_2_WIDTH, LEVEL_4_WIDTH, COYOTE_TIME, JUMP_BUFFER, INITIAL_RESPAWN_POINT
 } from '../constants';
 import { soundManager } from '../utils/SoundManager';
 
@@ -91,13 +91,36 @@ export const useGamePhysics = ({
 
     const handlePlayerDamage = (p: Player) => {
         if (p.isDead || p.invincibleTimer > 0) return;
-    
+
+        // Check for shield power-up
+        const hasShield = p.activePowerUps.some(pu => pu.type === 'shield');
+        if (hasShield) {
+            // Remove shield instead of taking damage
+            const shieldIndex = p.activePowerUps.findIndex(pu => pu.type === 'shield');
+            if (shieldIndex !== -1) {
+                p.activePowerUps.splice(shieldIndex, 1);
+                addFloatingText(p.position.x, p.position.y - 40, 'Kalkan Kırıldı!', '#fbbf24');
+                soundManager.playCoin();
+                p.invincibleTimer = 30; // Brief invincibility
+                return;
+            }
+        }
+
+        // Check for star power-up (full invincibility)
+        const hasStar = p.activePowerUps.some(pu => pu.type === 'star');
+        if (hasStar) {
+            addFloatingText(p.position.x, p.position.y - 40, 'Yıldız Koruma!', '#fbbf24');
+            soundManager.playCoin();
+            return; // No damage at all
+        }
+
         p.lives -= 1;
-        p.invincibleTimer = 60; 
-        gameState.current.screenShake = 15; 
+        p.invincibleTimer = 60;
+        gameState.current.screenShake = 15;
+        gameState.current.deathCount++;
         soundManager.playDamage();
-        p.buff = null; 
-    
+        p.buff = null;
+
         if (p.lives > 0) {
             p.position.x = gameState.current.activeRespawnPoint.x;
             p.position.y = gameState.current.activeRespawnPoint.y;
@@ -105,7 +128,7 @@ export const useGamePhysics = ({
         } else {
             p.isDead = true;
             p.velocity = {x: 0, y: 0};
-            
+
             const allDead = gameState.current.players.every(pl => pl.isDead);
             if (allDead) {
                 gameState.current.status = 'gameover';
@@ -514,8 +537,13 @@ export const useGamePhysics = ({
             if (p.jumpBufferTimer > 0) p.jumpBufferTimer--;
       
             const hasWarmth = p.buff?.type === 'warmth';
-            const currentJumpForce = hasWarmth ? p.jumpForce * 1.15 : p.jumpForce; 
+            const hasSpeed = p.activePowerUps.some(pu => pu.type === 'speed');
+            const hasDoubleJumpPower = p.activePowerUps.some(pu => pu.type === 'double_jump');
+            const hasStar = p.activePowerUps.some(pu => pu.type === 'star');
+
+            const currentJumpForce = hasWarmth ? p.jumpForce * 1.15 : p.jumpForce;
             const effectiveWind = hasWarmth ? WIND_FORCE * 0.2 : WIND_FORCE;
+            const effectiveMoveSpeed = hasSpeed ? p.moveSpeed * 1.5 : p.moveSpeed;
       
             const isSolo = gameState.current.players.length === 1;
             
@@ -533,20 +561,23 @@ export const useGamePhysics = ({
 
             // --- MOVEMENT LOGIC & GAME FEEL ---
             if (isSolo) {
-                if (left) { p.velocity.x -= p.moveSpeed; p.facing = 'left'; }
-                if (right) { p.velocity.x += p.moveSpeed; p.facing = 'right'; }
-                
+                if (left) { p.velocity.x -= effectiveMoveSpeed; p.facing = 'left'; }
+                if (right) { p.velocity.x += effectiveMoveSpeed; p.facing = 'right'; }
+
                 // AUTO-JUMP ENABLED: check raw input instead of "Fresh"
                 if (up) {
                      p.jumpBufferTimer = JUMP_BUFFER;
                 }
-        
+
+                // Ground jump
                 if (p.jumpBufferTimer > 0 && (p.isGrounded || p.coyoteTimer > 0)) {
                      p.velocity.y = activeJumpForce;
                      p.isGrounded = false;
-                     p.coyoteTimer = 0; 
+                     p.coyoteTimer = 0;
                      p.jumpBufferTimer = 0;
-                     
+                     p.hasDoubleJump = hasDoubleJumpPower; // Reset double jump if we have power-up
+                     gameState.current.perfectJumps++;
+
                      // Play different sound for super jump
                      if (p.standingOn === 'mushroom') soundManager.playBounce(1.0);
                      else soundManager.playJump();
@@ -559,49 +590,79 @@ export const useGamePhysics = ({
                      p.scale.x = 0.8;
                      p.scale.y = 1.2;
                 }
-                
+                // Double jump (in air)
+                else if (p.jumpBufferTimer > 0 && !p.isGrounded && p.hasDoubleJump) {
+                     p.velocity.y = activeJumpForce * 0.9; // Slightly weaker
+                     p.hasDoubleJump = false;
+                     p.jumpBufferTimer = 0;
+                     soundManager.playBounce(0.7);
+                     addFloatingText(p.position.x, p.position.y, 'Çift!', '#fbbf24');
+                     p.scale.x = 0.8;
+                     p.scale.y = 1.2;
+                }
+
                 // Variable Jump Height
                 if (!up && p.velocity.y < -4) {
                      p.velocity.y *= 0.5;
                 }
-        
+
             } else {
                 // Multi-Player Input Logic
                 if (p.id === 'cemre') {
-                    if (inputs.current['ArrowLeft']) { p.velocity.x -= p.moveSpeed; p.facing = 'left'; }
-                    if (inputs.current['ArrowRight']) { p.velocity.x += p.moveSpeed; p.facing = 'right'; }
-                    
+                    if (inputs.current['ArrowLeft']) { p.velocity.x -= effectiveMoveSpeed; p.facing = 'left'; }
+                    if (inputs.current['ArrowRight']) { p.velocity.x += effectiveMoveSpeed; p.facing = 'right'; }
+
                     if (inputs.current['ArrowUp']) {
                         p.jumpBufferTimer = JUMP_BUFFER;
                     }
-        
+
                     if (p.jumpBufferTimer > 0 && (p.isGrounded || p.coyoteTimer > 0)) {
                          p.velocity.y = activeJumpForce;
                          p.isGrounded = false;
                          p.coyoteTimer = 0;
                          p.jumpBufferTimer = 0;
+                         p.hasDoubleJump = hasDoubleJumpPower;
+                         gameState.current.perfectJumps++;
                          if (p.standingOn === 'mushroom') soundManager.playBounce(1.0);
                          else soundManager.playJump();
                          p.scale.x = 0.8;
                          p.scale.y = 1.2;
                     }
+                    else if (p.jumpBufferTimer > 0 && !p.isGrounded && p.hasDoubleJump) {
+                         p.velocity.y = activeJumpForce * 0.9;
+                         p.hasDoubleJump = false;
+                         p.jumpBufferTimer = 0;
+                         soundManager.playBounce(0.7);
+                         p.scale.x = 0.8;
+                         p.scale.y = 1.2;
+                    }
                     if (!inputs.current['ArrowUp'] && p.velocity.y < -4) p.velocity.y *= 0.5;
-                } 
+                }
                 else if (p.id === 'baba') {
-                    if (inputs.current['a'] || inputs.current['A']) { p.velocity.x -= p.moveSpeed; p.facing = 'left'; }
-                    if (inputs.current['d'] || inputs.current['D']) { p.velocity.x += p.moveSpeed; p.facing = 'right'; }
-                    
+                    if (inputs.current['a'] || inputs.current['A']) { p.velocity.x -= effectiveMoveSpeed; p.facing = 'left'; }
+                    if (inputs.current['d'] || inputs.current['D']) { p.velocity.x += effectiveMoveSpeed; p.facing = 'right'; }
+
                     if (inputs.current['w'] || inputs.current['W']) {
                         p.jumpBufferTimer = JUMP_BUFFER;
                     }
-        
+
                     if (p.jumpBufferTimer > 0 && (p.isGrounded || p.coyoteTimer > 0)) {
                         p.velocity.y = activeJumpForce;
                         p.isGrounded = false;
                         p.coyoteTimer = 0;
                         p.jumpBufferTimer = 0;
+                        p.hasDoubleJump = hasDoubleJumpPower;
+                        gameState.current.perfectJumps++;
                         if (p.standingOn === 'mushroom') soundManager.playBounce(1.0);
                         else soundManager.playJump();
+                        p.scale.x = 0.8;
+                        p.scale.y = 1.2;
+                    }
+                    else if (p.jumpBufferTimer > 0 && !p.isGrounded && p.hasDoubleJump) {
+                        p.velocity.y = activeJumpForce * 0.9;
+                        p.hasDoubleJump = false;
+                        p.jumpBufferTimer = 0;
+                        soundManager.playBounce(0.7);
                         p.scale.x = 0.8;
                         p.scale.y = 1.2;
                     }
@@ -677,16 +738,31 @@ export const useGamePhysics = ({
                 }
             }
       
+            // Check for magnet power-up
+            const hasMagnet = p.activePowerUps.some(pu => pu.type === 'magnet');
+            const magnetRadius = hasMagnet ? 150 : 0;
+
             gameState.current.coins.forEach(coin => {
                 if (!coin.collected && !coin.isNectarDrop) {
                     const dx = (p.position.x + p.size.width/2) - coin.position.x;
                     const dy = (p.position.y + p.size.height/2) - coin.position.y;
-                    if (Math.sqrt(dx*dx + dy*dy) < p.size.width/2 + coin.size) {
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+
+                    // Magnet effect - pull coins towards player
+                    if (hasMagnet && dist < magnetRadius && dist > p.size.width/2 + coin.size) {
+                        const pullForce = 0.15;
+                        coin.position.x += (p.position.x + p.size.width/2 - coin.position.x) * pullForce;
+                        coin.position.y += (p.position.y + p.size.height/2 - coin.position.y) * pullForce;
+                        coin.baseY = coin.position.y;
+                    }
+
+                    if (dist < p.size.width/2 + coin.size) {
                         coin.collected = true;
                         soundManager.playCoin();
-                        
+                        gameState.current.coinsCollected++;
+
                         addFloatingText(coin.position.x, coin.position.y - 20, '+10', '#fbbf24');
-                        
+
                         if (coin.type === 'hot-chocolate') {
                             p.buff = { type: 'warmth', timer: HOT_CHOCOLATE_DURATION };
                             addFloatingText(coin.position.x, coin.position.y - 40, 'Isındın!', '#f97316');
@@ -697,6 +773,39 @@ export const useGamePhysics = ({
                     }
                 }
             });
+
+            // Power-up collection
+            gameState.current.powerUps.forEach(powerUp => {
+                if (!powerUp.collected) {
+                    const dx = (p.position.x + p.size.width/2) - powerUp.position.x;
+                    const dy = (p.position.y + p.size.height/2) - powerUp.position.y;
+                    if (Math.sqrt(dx*dx + dy*dy) < p.size.width/2 + 15) {
+                        powerUp.collected = true;
+                        soundManager.playCoin();
+                        gameState.current.powerUpsUsed++;
+
+                        // Add power-up to player
+                        p.activePowerUps.push({ type: powerUp.type, timer: powerUp.duration });
+
+                        const names: Record<string, string> = {
+                            'shield': 'Kalkan!',
+                            'speed': 'Hız!',
+                            'double_jump': 'Çift Zıplama!',
+                            'magnet': 'Mıknatıs!',
+                            'star': 'Yıldız!'
+                        };
+                        addFloatingText(powerUp.position.x, powerUp.position.y - 20, names[powerUp.type], '#fbbf24');
+                    }
+                }
+            });
+
+            // Update active power-ups
+            for (let i = p.activePowerUps.length - 1; i >= 0; i--) {
+                p.activePowerUps[i].timer--;
+                if (p.activePowerUps[i].timer <= 0) {
+                    p.activePowerUps.splice(i, 1);
+                }
+            }
       
             // Enemy Collision Logic (Updated for Stomp & Hitbox Forgiveness)
             const hitX = p.position.x + 10; // More forgiveness on sides
@@ -715,24 +824,70 @@ export const useGamePhysics = ({
                      // Player must be falling and above the enemy
                      const playerBottom = p.position.y + p.size.height;
                      // Allow some overlap (15px) for the stomp to register
-                     const isAbove = playerBottom < enemy.position.y + (enemy.size.height / 2) + 10; 
+                     const isAbove = playerBottom < enemy.position.y + (enemy.size.height / 2) + 10;
                      const isFalling = p.velocity.y > 0;
 
-                     if (isFalling && isAbove) {
-                         // STOMP SUCCESS
-                         p.velocity.y = -8; // Bounce off enemy
-                         soundManager.playCoin(); // Use coin sound as pop for now
-                         addFloatingText(enemy.position.x, enemy.position.y, "Bam!", "#fff");
-                         createDust(enemy.position.x + enemy.size.width/2, enemy.position.y + enemy.size.height/2);
-                         // Remove enemy
-                         gameState.current.enemies.splice(i, 1);
-                         
-                         // Slight Bounce scaling
-                         p.scale.x = 1.2;
-                         p.scale.y = 0.8;
+                     if (enemy.type === 'boss') {
+                         // BOSS FIGHT LOGIC
+                         if (isFalling && isAbove) {
+                             // Hit boss
+                             p.velocity.y = -12; // Big bounce
+                             enemy.health = (enemy.health || 1) - 1;
+                             gameState.current.screenShake = 10;
+                             soundManager.playDamage();
+                             addFloatingText(enemy.position.x + 50, enemy.position.y - 20, `-1 ❤️`, '#ef4444');
+
+                             if (enemy.health <= 0) {
+                                 // Boss defeated!
+                                 gameState.current.enemiesDefeated++;
+                                 gameState.current.score += 100;
+                                 gameState.current.enemies.splice(i, 1);
+                                 soundManager.playWin();
+                                 addFloatingText(enemy.position.x + 50, enemy.position.y, "YENILDI!", "#22c55e");
+                                 gameState.current.screenShake = 30;
+                                 // Spawn reward coins
+                                 for (let j = 0; j < 10; j++) {
+                                     gameState.current.coins.push({
+                                         id: 9000 + j,
+                                         position: { x: enemy.position.x + Math.random() * 150, y: enemy.position.y - 100 },
+                                         size: 14,
+                                         collected: false,
+                                         baseY: enemy.position.y - 100,
+                                         type: 'gold',
+                                         isNectarDrop: true
+                                     });
+                                 }
+                             } else {
+                                 // Boss takes damage, change phase
+                                 if (enemy.health <= (enemy.maxHealth || 20) / 2 && enemy.phase === 1) {
+                                     enemy.phase = 2;
+                                     enemy.speed = (enemy.speed || 2) * 1.5;
+                                     addFloatingText(enemy.position.x + 50, enemy.position.y - 40, "ÖFKELENDİ!", "#ef4444");
+                                 }
+                             }
+                         } else {
+                             // Boss hits player
+                             handlePlayerDamage(p);
+                         }
                      } else {
-                         // Failed to stomp, take damage
-                         handlePlayerDamage(p);
+                         // REGULAR ENEMY
+                         if (isFalling && isAbove) {
+                             // STOMP SUCCESS
+                             p.velocity.y = -8; // Bounce off enemy
+                             gameState.current.enemiesDefeated++;
+                             soundManager.playCoin();
+                             addFloatingText(enemy.position.x, enemy.position.y, "Bam!", "#fff");
+                             createDust(enemy.position.x + enemy.size.width/2, enemy.position.y + enemy.size.height/2);
+                             // Remove enemy
+                             gameState.current.enemies.splice(i, 1);
+
+                             // Slight Bounce scaling
+                             p.scale.x = 1.2;
+                             p.scale.y = 0.8;
+                         } else {
+                             // Failed to stomp, take damage
+                             handlePlayerDamage(p);
+                         }
                      }
                 }
             }
@@ -768,6 +923,7 @@ export const useGamePhysics = ({
             let levelWidth = LEVEL_1_WIDTH;
             if (gameState.current.level === 2) levelWidth = LEVEL_2_WIDTH;
             if (gameState.current.level === 3) levelWidth = 8000;
+            if (gameState.current.level === 4) levelWidth = LEVEL_4_WIDTH;
 
             const maxScroll = levelWidth - CANVAS_WIDTH;
 
@@ -806,7 +962,7 @@ export const useGamePhysics = ({
                      gameState.current.status = 'transition';
                      gameState.current.cinematicMode = 'aurora_suction';
                      callbacks.setGameStatus('transition');
-                     
+
                      // After cinematic, load level 3
                      setTimeout(() => {
                          callbacks.loadLevel(3);
@@ -819,8 +975,25 @@ export const useGamePhysics = ({
                          ]);
                          callbacks.setShowDialog(true);
                      }, 2000);
+                 } else if (gameState.current.level === 3) {
+                     // Transition to Level 4 (Boss)
+                     gameState.current.status = 'transition';
+                     gameState.current.cinematicMode = 'aurora_suction';
+                     callbacks.setGameStatus('transition');
+
+                     // After cinematic, load level 4
+                     setTimeout(() => {
+                         callbacks.loadLevel(4);
+                         gameState.current.status = 'playing';
+                         callbacks.setGameStatus('playing');
+                         callbacks.setDialogText([
+                            {name: 'Baba', text: 'Dikkatli ol! Önümüzde bir şey var...'},
+                            {name: 'Cemre', text: 'Ne kadar büyük! Yenmek için işbirliği yapmalıyız!'}
+                         ]);
+                         callbacks.setShowDialog(true);
+                     }, 2000);
                  } else {
-                     // Win Game (End of Level 3)
+                     // Win Game (End of Level 4)
                      gameState.current.status = 'won';
                      callbacks.setGameStatus('won');
                      soundManager.playWin();

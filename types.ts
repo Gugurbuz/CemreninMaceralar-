@@ -27,7 +27,9 @@ export interface Player {
   isDead: boolean;
   buff: { type: 'warmth'; timer: number } | null; // Buff state
   invincibleTimer: number; // New: Flashing effect
-  
+  activePowerUps: Array<{ type: PowerUp['type']; timer: number }>; // Multiple power-ups
+  hasDoubleJump: boolean; // For double jump power-up
+
   // Game Feel Mechanics
   coyoteTimer: number; // Frames allowing jump after leaving ground
   jumpBufferTimer: number; // Frames remembering jump press before hitting ground
@@ -60,16 +62,30 @@ export interface Coin {
   size: number; // radius
   collected: boolean;
   baseY: number; // for bobbing animation
-  type: 'gold' | 'kanelbulle' | 'hot-chocolate' | 'apple' | 'cherry' | 'banana'; 
+  type: 'gold' | 'kanelbulle' | 'hot-chocolate' | 'apple' | 'cherry' | 'banana';
   isNectarDrop?: boolean; // For win cinematic
+}
+
+export interface PowerUp {
+  id: number;
+  position: Vector2;
+  size: Size;
+  type: 'shield' | 'speed' | 'double_jump' | 'magnet' | 'star';
+  collected: boolean;
+  baseY: number;
+  duration: number; // frames
 }
 
 export interface Enemy {
   id: number;
   position: Vector2;
   size: Size;
-  type: 'slime' | 'snowman' | 'yeti' | 'bird';
+  type: 'slime' | 'snowman' | 'yeti' | 'bird' | 'boss';
   color: string;
+  health?: number; // For boss
+  maxHealth?: number; // For boss
+  phase?: number; // For boss phases
+  attackTimer?: number; // For boss attacks
   // Patrol logic
   originalX?: number;
   patrolDistance?: number;
@@ -126,27 +142,33 @@ export interface GameConfig {
 }
 
 export interface GameState {
-  level: number; // 1, 2 or 3
-  gameMode: 'solo' | 'multi'; 
+  level: number; // 1, 2, 3, or 4
+  gameMode: 'solo' | 'multi';
   runConfig: GameConfig; // Store initial config for restarts
   players: Player[];
   platforms: Platform[];
   coins: Coin[];
+  powerUps: PowerUp[];
   enemies: Enemy[];
   checkpoints: Checkpoint[];
   floatingTexts: FloatingText[]; // New: Popups
   camera: Vector2;
-  status: 'menu' | 'playing' | 'won' | 'gameover' | 'transition' | 'paused'; 
+  status: 'menu' | 'playing' | 'won' | 'gameover' | 'transition' | 'paused';
   score: number;
-  globalTime: number; 
+  globalTime: number;
   activeRespawnPoint: Vector2;
-  windActive: boolean; 
-  canTeleport: boolean; 
+  windActive: boolean;
+  canTeleport: boolean;
   screenShake: number; // New: Shake intensity
-  
+  coinsCollected: number; // Track total coins
+  enemiesDefeated: number; // Track enemies defeated
+  deathCount: number; // Track deaths
+  perfectJumps: number; // Track perfect jumps
+  powerUpsUsed: number; // Track power-ups used
+
   // Cinematic & Logic
   portalHoldTimer: number; // For co-op win
-  cinematicMode: 'none' | 'aurora_suction' | 'nectar_rain'; 
+  cinematicMode: 'none' | 'aurora_suction' | 'nectar_rain';
 }
 
 export interface InputState {

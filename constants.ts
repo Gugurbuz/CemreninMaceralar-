@@ -16,9 +16,10 @@ export const COYOTE_TIME = 8; // Frames allowed to jump after falling off ledge
 export const JUMP_BUFFER = 8; // Frames to remember jump press before hitting ground
 
 // Level Boundaries for Camera Clamping (Extended)
-export const LEVEL_1_WIDTH = 14000; 
+export const LEVEL_1_WIDTH = 14000;
 export const LEVEL_2_WIDTH = 15000; // Extended Level 2
 export const LEVEL_3_WIDTH = 8000;  // Level 3 Length
+export const LEVEL_4_WIDTH = 10000; // Level 4 Length (Boss Level)
 
 export const INITIAL_RESPAWN_POINT = { x: 100, y: 300 };
 
@@ -33,14 +34,16 @@ export const getInitialPlayers = (startingLives: number = 3): Player[] => [
     scale: { x: 1, y: 1 },
     color: '#FF69B4', // Hot Pink
     isGrounded: false,
-    jumpForce: -16.0, 
-    moveSpeed: 1.3, 
+    jumpForce: -16.0,
+    moveSpeed: 1.3,
     facing: 'right',
     animFrame: 0,
     lives: startingLives,
     isDead: false,
     buff: null,
     invincibleTimer: 0,
+    activePowerUps: [],
+    hasDoubleJump: false,
     coyoteTimer: 0,
     jumpBufferTimer: 0,
     mushroomCooldown: 0,
@@ -56,7 +59,7 @@ export const getInitialPlayers = (startingLives: number = 3): Player[] => [
     scale: { x: 1, y: 1 },
     color: '#1E90FF', // Dodger Blue
     isGrounded: false,
-    jumpForce: -15.5, 
+    jumpForce: -15.5,
     moveSpeed: 1.25,
     facing: 'right',
     animFrame: 0,
@@ -64,6 +67,8 @@ export const getInitialPlayers = (startingLives: number = 3): Player[] => [
     isDead: false,
     buff: null,
     invincibleTimer: 0,
+    activePowerUps: [],
+    hasDoubleJump: false,
     coyoteTimer: 0,
     jumpBufferTimer: 0,
     mushroomCooldown: 0,
@@ -303,4 +308,75 @@ export const getFruitParadiseEnemies = (): Enemy[] => []; // No enemies!
 
 export const getFruitParadiseCheckpoints = (): Checkpoint[] => [
     { id: 301, position: { x: 3000, y: 400 }, size: { width: 40, height: 60 }, triggered: false },
+];
+
+// --- LEVEL 4: AURORA'S GUARDIAN (BOSS LEVEL) ---
+export const getBossLevelPlatforms = (): Platform[] => [
+    // Starting platform
+    { position: { x: -200, y: 600 }, size: { width: 1200, height: 200 }, type: 'ground', color: '#1e3a8a' },
+
+    // Main arena floor
+    { position: { x: 1200, y: 650 }, size: { width: 3000, height: 150 }, type: 'ground', color: '#0f172a' },
+
+    // Side platforms for dodging
+    { position: { x: 1500, y: 450 }, size: { width: 200, height: 20 }, type: 'block', color: '#334155' },
+    { position: { x: 2200, y: 350 }, size: { width: 200, height: 20 }, type: 'block', color: '#334155' },
+    { position: { x: 2900, y: 450 }, size: { width: 200, height: 20 }, type: 'block', color: '#334155' },
+    { position: { x: 3600, y: 350 }, size: { width: 200, height: 20 }, type: 'block', color: '#334155' },
+
+    // Emergency mushroom (healing platform)
+    { position: { x: 2400, y: 570 }, size: { width: 100, height: 80 }, type: 'mushroom', color: '#67e8f9', deformation: 0 },
+
+    // Ice hazards
+    { position: { x: 1800, y: 600 }, size: { width: 150, height: 50 }, type: 'ice', color: '#bae6fd' },
+    { position: { x: 3200, y: 600 }, size: { width: 150, height: 50 }, type: 'ice', color: '#bae6fd' },
+
+    // End platform with portal
+    { position: { x: 4500, y: 600 }, size: { width: 2000, height: 200 }, type: 'ground', color: '#1e3a8a' },
+    { position: { x: 5200, y: 450 }, size: { width: 150, height: 150 }, type: 'aurora', color: 'transparent', requiresCoop: true },
+
+    // Walls
+    { position: { x: 6500, y: -200 }, size: { width: 100, height: 1000 }, type: 'ground', color: '#0f172a' },
+];
+
+export const getBossLevelCoins = (): Coin[] => [
+    { id: 401, position: { x: 1600, y: 400 }, size: 14, collected: false, baseY: 400, type: 'hot-chocolate' },
+    { id: 402, position: { x: 2300, y: 300 }, size: 14, collected: false, baseY: 300, type: 'hot-chocolate' },
+    { id: 403, position: { x: 3000, y: 400 }, size: 14, collected: false, baseY: 400, type: 'hot-chocolate' },
+    { id: 404, position: { x: 3700, y: 300 }, size: 14, collected: false, baseY: 300, type: 'hot-chocolate' },
+    { id: 405, position: { x: 2500, y: 470 }, size: 14, collected: false, baseY: 470, type: 'gold' },
+    { id: 406, position: { x: 5500, y: 500 }, size: 14, collected: false, baseY: 500, type: 'kanelbulle' },
+    { id: 407, position: { x: 5700, y: 500 }, size: 14, collected: false, baseY: 500, type: 'kanelbulle' },
+    { id: 408, position: { x: 5900, y: 500 }, size: 14, collected: false, baseY: 500, type: 'kanelbulle' },
+];
+
+export const getBossLevelEnemies = (): Enemy[] => [
+    // THE BOSS: Aurora Guardian - A giant crystalline yeti
+    {
+        id: 999,
+        position: { x: 2800, y: 400 },
+        size: { width: 150, height: 200 },
+        type: 'boss',
+        color: '#7dd3fc',
+        health: 20,
+        maxHealth: 20,
+        phase: 1,
+        attackTimer: 0,
+        originalX: 2800,
+        patrolDistance: 800,
+        speed: 2,
+        direction: 1
+    }
+];
+
+export const getBossLevelCheckpoints = (): Checkpoint[] => [
+    { id: 401, position: { x: 800, y: 550 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 402, position: { x: 4600, y: 550 }, size: { width: 40, height: 60 }, triggered: false },
+];
+
+export const getBossLevelPowerUps = (): import('./types').PowerUp[] => [
+    { id: 1, position: { x: 1600, y: 420 }, size: { width: 30, height: 30 }, type: 'shield', collected: false, baseY: 420, duration: 300 },
+    { id: 2, position: { x: 2300, y: 320 }, size: { width: 30, height: 30 }, type: 'speed', collected: false, baseY: 320, duration: 240 },
+    { id: 3, position: { x: 3000, y: 420 }, size: { width: 30, height: 30 }, type: 'double_jump', collected: false, baseY: 420, duration: 360 },
+    { id: 4, position: { x: 3700, y: 320 }, size: { width: 30, height: 30 }, type: 'star', collected: false, baseY: 320, duration: 180 },
 ];

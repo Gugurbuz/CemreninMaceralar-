@@ -1,12 +1,13 @@
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Player, GameState, Particle, EffectParticle } from '../types';
-import { 
-  getInitialPlayers, 
+import {
+  getInitialPlayers,
   getWinterPlatforms, getWinterCoins, getWinterEnemies, getWinterCheckpoints,
   getButterflyPlatforms, getButterflyCoins, getButterflyEnemies, getButterflyCheckpoints,
   getFruitParadisePlatforms, getFruitParadiseCoins, getFruitParadiseEnemies, getFruitParadiseCheckpoints,
-  INITIAL_RESPAWN_POINT, 
+  getBossLevelPlatforms, getBossLevelCoins, getBossLevelEnemies, getBossLevelCheckpoints, getBossLevelPowerUps,
+  INITIAL_RESPAWN_POINT,
   CANVAS_WIDTH, CANVAS_HEIGHT
 } from '../constants';
 import { soundManager } from '../utils/SoundManager';
@@ -76,6 +77,7 @@ export const GameCanvas: React.FC = () => {
     players: getInitialPlayers(3),
     platforms: getWinterPlatforms(),
     coins: getWinterCoins(),
+    powerUps: [],
     enemies: getWinterEnemies(),
     checkpoints: getWinterCheckpoints(),
     floatingTexts: [],
@@ -88,7 +90,12 @@ export const GameCanvas: React.FC = () => {
     canTeleport: false,
     screenShake: 0,
     portalHoldTimer: 0,
-    cinematicMode: 'none'
+    cinematicMode: 'none',
+    coinsCollected: 0,
+    enemiesDefeated: 0,
+    deathCount: 0,
+    perfectJumps: 0,
+    powerUpsUsed: 0
   });
 
   const particles = useRef<Particle[]>([]);
@@ -177,19 +184,28 @@ export const GameCanvas: React.FC = () => {
       if (level === 1) {
           gameState.current.platforms = getWinterPlatforms();
           gameState.current.coins = getWinterCoins();
+          gameState.current.powerUps = [];
           gameState.current.enemies = getWinterEnemies();
           gameState.current.checkpoints = getWinterCheckpoints();
       } else if (level === 2) {
           gameState.current.platforms = getButterflyPlatforms();
           gameState.current.coins = getButterflyCoins();
+          gameState.current.powerUps = [];
           gameState.current.enemies = getButterflyEnemies();
           gameState.current.checkpoints = getButterflyCheckpoints();
-      } else {
-          // Level 3
+      } else if (level === 3) {
           gameState.current.platforms = getFruitParadisePlatforms();
           gameState.current.coins = getFruitParadiseCoins();
+          gameState.current.powerUps = [];
           gameState.current.enemies = getFruitParadiseEnemies();
           gameState.current.checkpoints = getFruitParadiseCheckpoints();
+      } else {
+          // Level 4 (Boss)
+          gameState.current.platforms = getBossLevelPlatforms();
+          gameState.current.coins = getBossLevelCoins();
+          gameState.current.powerUps = getBossLevelPowerUps();
+          gameState.current.enemies = getBossLevelEnemies();
+          gameState.current.checkpoints = getBossLevelCheckpoints();
       }
       
       gameState.current.camera = { x: 0, y: 0 };
@@ -409,6 +425,7 @@ export const GameCanvas: React.FC = () => {
       if (lvl === 1) return 'Bölüm 1: Kış Masalı';
       if (lvl === 2) return 'Bölüm 2: Kelebek Vadisi';
       if (lvl === 3) return 'Bölüm 3: Meyve Cenneti';
+      if (lvl === 4) return 'Bölüm 4: Aurora Koruyucusu';
       return 'Bölüm ?';
   }
 
@@ -677,13 +694,22 @@ export const GameCanvas: React.FC = () => {
                           <span className="text-sm font-normal mt-1 opacity-90">Kelebek Vadisi</span>
                         </button>
                         
-                        <button 
+                        <button
                           onClick={() => startNewGame(3)}
                           className="px-8 py-6 bg-pink-500 hover:bg-pink-400 text-white rounded-xl text-2xl font-bold shadow-lg transform transition hover:scale-105 active:scale-95 flex flex-col items-center w-64 border-b-8 border-pink-800"
                         >
                           <span className="text-4xl mb-2">🍎</span>
                           <span>Bölüm 3</span>
                           <span className="text-sm font-normal mt-1 opacity-90">Meyve Cenneti</span>
+                        </button>
+
+                        <button
+                          onClick={() => startNewGame(4)}
+                          className="px-8 py-6 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-2xl font-bold shadow-lg transform transition hover:scale-105 active:scale-95 flex flex-col items-center w-64 border-b-8 border-slate-900"
+                        >
+                          <span className="text-4xl mb-2">👹</span>
+                          <span>Bölüm 4</span>
+                          <span className="text-sm font-normal mt-1 opacity-90">Boss Savaşı</span>
                         </button>
                     </div>
                     <button 

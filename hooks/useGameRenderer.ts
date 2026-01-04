@@ -846,7 +846,104 @@ export const useGameRenderer = (
                 ctx.fillStyle = 'black';
                 const pupilX = facingRight ? eyeX + 1.5 : eyeX - 1.5;
                 ctx.beginPath(); ctx.arc(pupilX, y + 8, 2, 0, Math.PI*2); ctx.fill();
+            } else if (enemy.type === 'boss') {
+                // BOSS RENDERING - Giant Crystalline Yeti
+                const pulse = Math.sin(gameState.current.globalTime * 0.1) * 5;
+
+                // Main body - crystalline effect
+                ctx.fillStyle = enemy.color;
+                ctx.fillRect(x, y, enemy.size.width, enemy.size.height);
+
+                // Ice crystals
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.beginPath();
+                ctx.moveTo(x + 30, y + 20);
+                ctx.lineTo(x + 40, y);
+                ctx.lineTo(x + 50, y + 20);
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(x + 100, y + 30);
+                ctx.lineTo(x + 110, y + 10);
+                ctx.lineTo(x + 120, y + 30);
+                ctx.fill();
+
+                // Face
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(x + 35, y + 50, enemy.size.width - 70, 60);
+
+                // Eyes - red and angry
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath();
+                ctx.arc(x + 55, y + 70, 8 + pulse, 0, Math.PI*2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(x + 95, y + 70, 8 + pulse, 0, Math.PI*2);
+                ctx.fill();
+
+                // Mouth - show phase
+                ctx.strokeStyle = enemy.phase === 2 ? '#ef4444' : '#334155';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                if (enemy.phase === 2) {
+                    // Angry mouth
+                    ctx.moveTo(x + 45, y + 95);
+                    ctx.quadraticCurveTo(x + 75, y + 85, x + 105, y + 95);
+                } else {
+                    // Normal mouth
+                    ctx.moveTo(x + 45, y + 95);
+                    ctx.quadraticCurveTo(x + 75, y + 100, x + 105, y + 95);
+                }
+                ctx.stroke();
+
+                // Health bar
+                const healthPct = (enemy.health || 1) / (enemy.maxHealth || 1);
+                const barWidth = enemy.size.width - 20;
+                const barX = x + 10;
+                const barY = y - 20;
+
+                ctx.fillStyle = '#000';
+                ctx.fillRect(barX, barY, barWidth, 10);
+                ctx.fillStyle = healthPct > 0.5 ? '#22c55e' : healthPct > 0.25 ? '#eab308' : '#ef4444';
+                ctx.fillRect(barX + 2, barY + 2, (barWidth - 4) * healthPct, 6);
+
+                // Boss name
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 16px Fredoka';
+                ctx.textAlign = 'center';
+                ctx.fillText('Aurora Koruyucusu', x + enemy.size.width / 2, barY - 5);
             }
+        });
+
+        // Draw power-ups
+        gameState.current.powerUps.forEach(powerUp => {
+            if (powerUp.collected) return;
+
+            const bob = Math.sin(gameState.current.globalTime * 0.1) * 5;
+            const px = powerUp.position.x;
+            const py = powerUp.baseY + bob;
+
+            // Glow effect
+            ctx.save();
+            ctx.globalAlpha = 0.3 + Math.sin(gameState.current.globalTime * 0.2) * 0.2;
+            ctx.fillStyle = powerUp.type === 'shield' ? '#60a5fa' :
+                           powerUp.type === 'speed' ? '#fbbf24' :
+                           powerUp.type === 'double_jump' ? '#22c55e' :
+                           powerUp.type === 'magnet' ? '#a855f7' : '#f97316';
+            ctx.beginPath();
+            ctx.arc(px, py, 25, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // Icon
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const icon = powerUp.type === 'shield' ? '🛡️' :
+                        powerUp.type === 'speed' ? '⚡' :
+                        powerUp.type === 'double_jump' ? '🦘' :
+                        powerUp.type === 'magnet' ? '🧲' : '⭐';
+            ctx.fillText(icon, px, py);
         });
     
         gameState.current.players.forEach(p => {
