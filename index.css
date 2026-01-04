@@ -1,0 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Fredoka', sans-serif;
+  margin: 0;
+  overflow: hidden;
+  background-color: #87CEEB;
+}
+
+canvas {
+  display: block;
+}
