@@ -143,15 +143,15 @@ export const useGameRenderer = (
         bg.height = CANVAS_HEIGHT;
         const ctx = bg.getContext('2d');
         if (!ctx) return;
-  
+
         // BASE GRADIENT
         if (level === 1) {
             const bgGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-            bgGradient.addColorStop(0, '#0f172a'); 
-            bgGradient.addColorStop(1, '#1e3a8a'); 
+            bgGradient.addColorStop(0, '#0f172a');
+            bgGradient.addColorStop(1, '#1e3a8a');
             ctx.fillStyle = bgGradient;
             ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-            
+
             // Stars
             ctx.fillStyle = 'rgba(255,255,255,0.7)';
             for(let i=0; i<100; i++) {
@@ -161,8 +161,8 @@ export const useGameRenderer = (
             }
         } else if (level === 2) {
             const bgGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-            bgGradient.addColorStop(0, '#7dd3fc'); 
-            bgGradient.addColorStop(1, '#c084fc'); 
+            bgGradient.addColorStop(0, '#7dd3fc');
+            bgGradient.addColorStop(1, '#c084fc');
             ctx.fillStyle = bgGradient;
             ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         } else if (level === 3) {
@@ -173,12 +173,27 @@ export const useGameRenderer = (
             bgGradient.addColorStop(1, '#60a5fa'); // Blue
             ctx.fillStyle = bgGradient;
             ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-            
+
             // Sun
             ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
             ctx.beginPath();
             ctx.arc(CANVAS_WIDTH * 0.8, CANVAS_HEIGHT * 0.2, 80, 0, Math.PI*2);
             ctx.fill();
+        } else if (level === 4) {
+            // Level 4: Calm Boss Arena - Soft gradient
+            const bgGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+            bgGradient.addColorStop(0, '#1e293b'); // Soft dark blue
+            bgGradient.addColorStop(1, '#334155'); // Lighter slate
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // Soft stars - fewer and dimmer
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            for(let i=0; i<40; i++) {
+                ctx.beginPath();
+                ctx.arc(Math.random()*CANVAS_WIDTH, Math.random()*CANVAS_HEIGHT, Math.random()*1, 0, Math.PI*2);
+                ctx.fill();
+            }
         }
         bgCanvasRef.current = bg;
     }, []);
@@ -847,71 +862,96 @@ export const useGameRenderer = (
                 const pupilX = facingRight ? eyeX + 1.5 : eyeX - 1.5;
                 ctx.beginPath(); ctx.arc(pupilX, y + 8, 2, 0, Math.PI*2); ctx.fill();
             } else if (enemy.type === 'boss') {
-                // BOSS RENDERING - Giant Crystalline Yeti
-                const pulse = Math.sin(gameState.current.globalTime * 0.1) * 5;
+                // BOSS RENDERING - Simplified and easier on eyes
+                const pulse = Math.sin(gameState.current.globalTime * 0.15) * 3;
 
-                // Main body - crystalline effect
-                ctx.fillStyle = enemy.color;
+                // Main body - soft gradient instead of harsh crystalline
+                const bodyGradient = ctx.createLinearGradient(x, y, x, y + enemy.size.height);
+                bodyGradient.addColorStop(0, '#94a3b8'); // Soft slate
+                bodyGradient.addColorStop(1, '#64748b'); // Darker slate
+                ctx.fillStyle = bodyGradient;
                 ctx.fillRect(x, y, enemy.size.width, enemy.size.height);
 
-                // Ice crystals
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                // Soft ice effect - much more subtle
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.fillRect(x + 10, y + 10, 30, 40);
+                ctx.fillRect(x + enemy.size.width - 40, y + 20, 30, 35);
+
+                // Face area - softer white
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
                 ctx.beginPath();
-                ctx.moveTo(x + 30, y + 20);
-                ctx.lineTo(x + 40, y);
-                ctx.lineTo(x + 50, y + 20);
+                ctx.arc(x + 75, y + 75, 40, 0, Math.PI * 2);
                 ctx.fill();
 
+                // Eyes - softer colors, less aggressive
+                const eyeColor = enemy.phase === 2 ? '#f59e0b' : '#60a5fa'; // Orange or soft blue
+                ctx.fillStyle = eyeColor;
                 ctx.beginPath();
-                ctx.moveTo(x + 100, y + 30);
-                ctx.lineTo(x + 110, y + 10);
-                ctx.lineTo(x + 120, y + 30);
-                ctx.fill();
-
-                // Face
-                ctx.fillStyle = '#fff';
-                ctx.fillRect(x + 35, y + 50, enemy.size.width - 70, 60);
-
-                // Eyes - red and angry
-                ctx.fillStyle = '#ef4444';
-                ctx.beginPath();
-                ctx.arc(x + 55, y + 70, 8 + pulse, 0, Math.PI*2);
+                ctx.arc(x + 55, y + 70, 6 + pulse, 0, Math.PI*2);
                 ctx.fill();
                 ctx.beginPath();
-                ctx.arc(x + 95, y + 70, 8 + pulse, 0, Math.PI*2);
+                ctx.arc(x + 95, y + 70, 6 + pulse, 0, Math.PI*2);
                 ctx.fill();
 
-                // Mouth - show phase
-                ctx.strokeStyle = enemy.phase === 2 ? '#ef4444' : '#334155';
-                ctx.lineWidth = 4;
+                // Pupils
+                ctx.fillStyle = '#1e293b';
+                ctx.beginPath();
+                ctx.arc(x + 55, y + 70, 3, 0, Math.PI*2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(x + 95, y + 70, 3, 0, Math.PI*2);
+                ctx.fill();
+
+                // Mouth - simplified
+                ctx.strokeStyle = enemy.phase === 2 ? '#f59e0b' : '#64748b';
+                ctx.lineWidth = 3;
                 ctx.beginPath();
                 if (enemy.phase === 2) {
-                    // Angry mouth
-                    ctx.moveTo(x + 45, y + 95);
-                    ctx.quadraticCurveTo(x + 75, y + 85, x + 105, y + 95);
+                    ctx.moveTo(x + 50, y + 95);
+                    ctx.lineTo(x + 100, y + 95);
                 } else {
-                    // Normal mouth
-                    ctx.moveTo(x + 45, y + 95);
-                    ctx.quadraticCurveTo(x + 75, y + 100, x + 105, y + 95);
+                    ctx.arc(x + 75, y + 90, 20, 0.2, Math.PI - 0.2);
                 }
                 ctx.stroke();
 
-                // Health bar
+                // Health bar - softer colors
                 const healthPct = (enemy.health || 1) / (enemy.maxHealth || 1);
                 const barWidth = enemy.size.width - 20;
                 const barX = x + 10;
-                const barY = y - 20;
+                const barY = y - 25;
 
-                ctx.fillStyle = '#000';
-                ctx.fillRect(barX, barY, barWidth, 10);
-                ctx.fillStyle = healthPct > 0.5 ? '#22c55e' : healthPct > 0.25 ? '#eab308' : '#ef4444';
+                // Background
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.fillRect(barX - 2, barY - 2, barWidth + 4, 14);
+
+                // Border
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(barX, barY, barWidth, 10);
+
+                // Health fill - smooth gradient
+                const healthGradient = ctx.createLinearGradient(barX, barY, barX + barWidth * healthPct, barY);
+                if (healthPct > 0.5) {
+                    healthGradient.addColorStop(0, '#4ade80');
+                    healthGradient.addColorStop(1, '#22c55e');
+                } else if (healthPct > 0.25) {
+                    healthGradient.addColorStop(0, '#fbbf24');
+                    healthGradient.addColorStop(1, '#f59e0b');
+                } else {
+                    healthGradient.addColorStop(0, '#fb923c');
+                    healthGradient.addColorStop(1, '#f97316');
+                }
+                ctx.fillStyle = healthGradient;
                 ctx.fillRect(barX + 2, barY + 2, (barWidth - 4) * healthPct, 6);
 
-                // Boss name
+                // Boss name with shadow for readability
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                ctx.shadowBlur = 4;
                 ctx.fillStyle = '#fff';
-                ctx.font = 'bold 16px Fredoka';
+                ctx.font = 'bold 14px Fredoka';
                 ctx.textAlign = 'center';
-                ctx.fillText('Aurora Koruyucusu', x + enemy.size.width / 2, barY - 5);
+                ctx.fillText('Aurora Koruyucusu', x + enemy.size.width / 2, barY - 8);
+                ctx.shadowBlur = 0;
             }
         });
 

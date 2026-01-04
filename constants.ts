@@ -312,31 +312,31 @@ export const getFruitParadiseCheckpoints = (): Checkpoint[] => [
 
 // --- LEVEL 4: AURORA'S GUARDIAN (BOSS LEVEL) ---
 export const getBossLevelPlatforms = (): Platform[] => [
-    // Starting platform
-    { position: { x: -200, y: 600 }, size: { width: 1200, height: 200 }, type: 'ground', color: '#1e3a8a' },
+    // Starting platform - softer colors
+    { position: { x: -200, y: 600 }, size: { width: 1200, height: 200 }, type: 'ground', color: '#475569' },
 
-    // Main arena floor
-    { position: { x: 1200, y: 650 }, size: { width: 3000, height: 150 }, type: 'ground', color: '#0f172a' },
+    // Main arena floor - neutral gray
+    { position: { x: 1200, y: 650 }, size: { width: 3000, height: 150 }, type: 'ground', color: '#64748b' },
 
-    // Side platforms for dodging
-    { position: { x: 1500, y: 450 }, size: { width: 200, height: 20 }, type: 'block', color: '#334155' },
-    { position: { x: 2200, y: 350 }, size: { width: 200, height: 20 }, type: 'block', color: '#334155' },
-    { position: { x: 2900, y: 450 }, size: { width: 200, height: 20 }, type: 'block', color: '#334155' },
-    { position: { x: 3600, y: 350 }, size: { width: 200, height: 20 }, type: 'block', color: '#334155' },
+    // Side platforms for dodging - visible but not harsh
+    { position: { x: 1500, y: 450 }, size: { width: 200, height: 20 }, type: 'block', color: '#94a3b8' },
+    { position: { x: 2200, y: 350 }, size: { width: 200, height: 20 }, type: 'block', color: '#94a3b8' },
+    { position: { x: 2900, y: 450 }, size: { width: 200, height: 20 }, type: 'block', color: '#94a3b8' },
+    { position: { x: 3600, y: 350 }, size: { width: 200, height: 20 }, type: 'block', color: '#94a3b8' },
 
-    // Emergency mushroom (healing platform)
-    { position: { x: 2400, y: 570 }, size: { width: 100, height: 80 }, type: 'mushroom', color: '#67e8f9', deformation: 0 },
+    // Emergency mushroom - calmer color
+    { position: { x: 2400, y: 570 }, size: { width: 100, height: 80 }, type: 'mushroom', color: '#60a5fa', deformation: 0 },
 
-    // Ice hazards
-    { position: { x: 1800, y: 600 }, size: { width: 150, height: 50 }, type: 'ice', color: '#bae6fd' },
-    { position: { x: 3200, y: 600 }, size: { width: 150, height: 50 }, type: 'ice', color: '#bae6fd' },
+    // Ice hazards - softer blue
+    { position: { x: 1800, y: 600 }, size: { width: 150, height: 50 }, type: 'ice', color: '#93c5fd' },
+    { position: { x: 3200, y: 600 }, size: { width: 150, height: 50 }, type: 'ice', color: '#93c5fd' },
 
     // End platform with portal
-    { position: { x: 4500, y: 600 }, size: { width: 2000, height: 200 }, type: 'ground', color: '#1e3a8a' },
+    { position: { x: 4500, y: 600 }, size: { width: 2000, height: 200 }, type: 'ground', color: '#475569' },
     { position: { x: 5200, y: 450 }, size: { width: 150, height: 150 }, type: 'aurora', color: 'transparent', requiresCoop: true },
 
     // Walls
-    { position: { x: 6500, y: -200 }, size: { width: 100, height: 1000 }, type: 'ground', color: '#0f172a' },
+    { position: { x: 6500, y: -200 }, size: { width: 100, height: 1000 }, type: 'ground', color: '#64748b' },
 ];
 
 export const getBossLevelCoins = (): Coin[] => [
@@ -351,20 +351,20 @@ export const getBossLevelCoins = (): Coin[] => [
 ];
 
 export const getBossLevelEnemies = (): Enemy[] => [
-    // THE BOSS: Aurora Guardian - A giant crystalline yeti
+    // THE BOSS: Aurora Guardian - simplified for better visuals
     {
         id: 999,
         position: { x: 2800, y: 400 },
         size: { width: 150, height: 200 },
         type: 'boss',
-        color: '#7dd3fc',
-        health: 20,
-        maxHealth: 20,
+        color: '#94a3b8', // Softer slate color
+        health: 15, // Reduced health for faster, less tiring fight
+        maxHealth: 15,
         phase: 1,
         attackTimer: 0,
         originalX: 2800,
-        patrolDistance: 800,
-        speed: 2,
+        patrolDistance: 600, // Smaller patrol for less chaos
+        speed: 1.5, // Slower movement
         direction: 1
     }
 ];
