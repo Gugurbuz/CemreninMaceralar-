@@ -127,6 +127,7 @@ export const useGamePhysics = ({
             if (plat.type === 'aurora') continue;
             if (plat.type === 'crumbly' && plat.isFalling && (plat.fallTimer || 0) <= 0) continue;
             if (plat.type === 'plate' || plat.type === 'totem') continue; 
+            if (plat.type === 'cloud') continue; // Clouds are semi-solid (one way) logic handled in Y
   
             if (isColliding(
                 {x: hitX, y: hitY, w: hitW, h: hitH},
@@ -197,6 +198,16 @@ export const useGamePhysics = ({
                 // Determine collision direction based on velocity
                 if (player.velocity.y > 0) {
                      // Falling -> Hit Floor
+                     
+                     // Cloud Logic (One Way Platform): Only hit if we were previously ABOVE it
+                     // We check if previous Y (estimated by subtracting vy) was above platform y
+                     if (plat.type === 'cloud') {
+                         const prevY = player.position.y - player.velocity.y;
+                         if (prevY + player.size.height > plat.position.y + 10) {
+                             continue; // Ignored collision, passing through from bottom
+                         }
+                     }
+
                      // Prioritize Mushrooms > Higher Platforms
                      if (!bestPlatform) {
                          bestPlatform = plat;
@@ -217,6 +228,8 @@ export const useGamePhysics = ({
                      }
                 } else if (player.velocity.y < 0) {
                     // Rising -> Hit Head
+                    if (plat.type === 'cloud') continue; // Pass through clouds going up
+
                     if (!bestPlatform) {
                         bestPlatform = plat;
                         collisionType = 'ceiling';
@@ -234,66 +247,59 @@ export const useGamePhysics = ({
         if (bestPlatform && collisionType === 'floor') {
              // LANDING
              player.position.y = bestPlatform.position.y - player.size.height;
-             player.isGrounded = true;
-             player.coyoteTimer = COYOTE_TIME;
-
-             if (player.velocity.y > 4) { 
-                 player.scale.x = 1.3;
-                 player.scale.y = 0.7;
-
-                 if (gameState.current.level === 2 && bestPlatform.type === 'ice') {
-                       createSplash(player.position.x + player.size.width/2, player.position.y + player.size.height);
-                 } else {
-                       createDust(player.position.x + player.size.width/2, player.position.y + player.size.height);
-                 }
-             }
+             
+             // Track what we are standing on for Jump Logic
+             player.standingOn = bestPlatform.type;
              
              // Base Reset
              const oldVy = player.velocity.y;
-             player.velocity.y = 0;
-
+             
+             // MUSHROOM LOGIC
              if (bestPlatform.type === 'mushroom') {
-                 // Check Cooldown
-                 if (player.mushroomCooldown <= 0) {
-                    // MOMENTUM BOUNCE LOGIC (Skill-based)
-                    const impact = Math.abs(oldVy);
-                    let bouncePower = player.jumpForce * 1.3; // Base bounce (slightly lower base)
-                    
-                    // Bonus based on impact speed (if falling fast)
-                    const bonus = Math.max(0, (impact - 5) * 0.8); 
-                    let totalForce = bouncePower - bonus;
-                    
-                    // Cap max bounce
-                    const MAX_BOUNCE = -28; 
-                    if (totalForce < MAX_BOUNCE) totalForce = MAX_BOUNCE;
-    
-                    player.velocity.y = totalForce;
-                    player.isGrounded = false;
-                    player.mushroomCooldown = 15; // Set cooldown (~250ms)
-                    
-                    // Juice: Squish platform, stretch player
-                    bestPlatform.deformation = -0.4; 
-                    player.scale.x = 0.6;
-                    player.scale.y = 1.4;
-                    
-                    // Screen Shake
-                    if (Math.abs(totalForce) > 20) gameState.current.screenShake = 10;
-                    else gameState.current.screenShake = 5;
-    
-                    // Dynamic Sound
-                    soundManager.playBounce(Math.min(1, impact / 20));
+                 // AUTO BOUNCE ONLY IF FALLING FAST (Trampoline effect)
+                 if (oldVy > 12) {
+                     player.isGrounded = false;
+                     player.mushroomCooldown = 15;
+                     
+                     // Standard Auto-Bounce
+                     let bouncePower = -22; 
+                     player.velocity.y = bouncePower;
+                     
+                     bestPlatform.deformation = -0.4; 
+                     player.scale.x = 0.6; player.scale.y = 1.4;
+                     soundManager.playBounce(0.8);
                  } else {
-                    // Cooldown active, just treat as landing (which we did by setting vy=0)
+                     // Otherwise, land on it like normal ground
+                     player.isGrounded = true;
+                     player.coyoteTimer = COYOTE_TIME;
+                     player.velocity.y = 0;
                  }
+             } else {
+                 // NORMAL GROUND LOGIC
+                 player.isGrounded = true;
+                 player.coyoteTimer = COYOTE_TIME;
+                 player.velocity.y = 0;
+                 
+                 if (player.velocity.y > 4) { 
+                     player.scale.x = 1.3;
+                     player.scale.y = 0.7;
 
-             } else if (bestPlatform.type === 'ice') {
-                 friction = ICE_FRICTION;
-                 if (gameState.current.level === 2) {
-                     handlePlayerDamage(player);
-                     addFloatingText(player.position.x, player.position.y - 40, "Su Çok Soğuk!", "#38bdf8");
+                     if (gameState.current.level === 2 && bestPlatform.type === 'ice') {
+                           createSplash(player.position.x + player.size.width/2, player.position.y + player.size.height);
+                     } else {
+                           createDust(player.position.x + player.size.width/2, player.position.y + player.size.height);
+                     }
                  }
-             } else if (bestPlatform.type === 'crumbly') {
-                 if (!bestPlatform.isFalling) bestPlatform.isFalling = true;
+                 
+                 if (bestPlatform.type === 'ice') {
+                     friction = ICE_FRICTION;
+                     if (gameState.current.level === 2) {
+                         handlePlayerDamage(player);
+                         addFloatingText(player.position.x, player.position.y - 40, "Su Çok Soğuk!", "#38bdf8");
+                     }
+                 } else if (bestPlatform.type === 'crumbly') {
+                     if (!bestPlatform.isFalling) bestPlatform.isFalling = true;
+                 }
              }
 
         } else if (bestPlatform && collisionType === 'ceiling') {
@@ -516,7 +522,15 @@ export const useGamePhysics = ({
             const up = inputs.current['ArrowUp'] || inputs.current['w'] || inputs.current['W'];
             const left = inputs.current['ArrowLeft'] || inputs.current['a'] || inputs.current['A'];
             const right = inputs.current['ArrowRight'] || inputs.current['d'] || inputs.current['D'];
-      
+            
+            // Determine active Jump Force for this frame
+            let activeJumpForce = currentJumpForce;
+            
+            // SUPER JUMP if standing on Mushroom
+            if (p.standingOn === 'mushroom') {
+                activeJumpForce = -28; // Massive Super Jump
+            }
+
             // --- MOVEMENT LOGIC & GAME FEEL ---
             if (isSolo) {
                 if (left) { p.velocity.x -= p.moveSpeed; p.facing = 'left'; }
@@ -528,11 +542,15 @@ export const useGamePhysics = ({
                 }
         
                 if (p.jumpBufferTimer > 0 && (p.isGrounded || p.coyoteTimer > 0)) {
-                     p.velocity.y = currentJumpForce;
+                     p.velocity.y = activeJumpForce;
                      p.isGrounded = false;
                      p.coyoteTimer = 0; 
                      p.jumpBufferTimer = 0;
-                     soundManager.playJump();
+                     
+                     // Play different sound for super jump
+                     if (p.standingOn === 'mushroom') soundManager.playBounce(1.0);
+                     else soundManager.playJump();
+
                      if (!callbacks.tutorialStateRef.current.jumped) {
                          callbacks.setTutorialState((prev: any) => ({...prev, jumped: true}));
                          callbacks.tutorialStateRef.current.jumped = true;
@@ -558,11 +576,12 @@ export const useGamePhysics = ({
                     }
         
                     if (p.jumpBufferTimer > 0 && (p.isGrounded || p.coyoteTimer > 0)) {
-                         p.velocity.y = currentJumpForce;
+                         p.velocity.y = activeJumpForce;
                          p.isGrounded = false;
                          p.coyoteTimer = 0;
                          p.jumpBufferTimer = 0;
-                         soundManager.playJump();
+                         if (p.standingOn === 'mushroom') soundManager.playBounce(1.0);
+                         else soundManager.playJump();
                          p.scale.x = 0.8;
                          p.scale.y = 1.2;
                     }
@@ -577,11 +596,12 @@ export const useGamePhysics = ({
                     }
         
                     if (p.jumpBufferTimer > 0 && (p.isGrounded || p.coyoteTimer > 0)) {
-                        p.velocity.y = currentJumpForce;
+                        p.velocity.y = activeJumpForce;
                         p.isGrounded = false;
                         p.coyoteTimer = 0;
                         p.jumpBufferTimer = 0;
-                        soundManager.playJump();
+                        if (p.standingOn === 'mushroom') soundManager.playBounce(1.0);
+                        else soundManager.playJump();
                         p.scale.x = 0.8;
                         p.scale.y = 1.2;
                     }
@@ -633,8 +653,9 @@ export const useGamePhysics = ({
                 p.velocity.x *= friction;
             }
       
-            // Cap Terminal Velocity
-            if (p.velocity.y > TERMINAL_VELOCITY) p.velocity.y = TERMINAL_VELOCITY;
+            // Cap Terminal Velocity (Higher cap for Mushroom jumps)
+            const cap = p.standingOn === 'mushroom' ? 32 : TERMINAL_VELOCITY;
+            if (p.velocity.y > cap) p.velocity.y = cap;
             
             // Drag at low speeds
             if (Math.abs(p.velocity.x) < 0.1) p.velocity.x = 0;
@@ -743,12 +764,70 @@ export const useGamePhysics = ({
             // Smooth Lerp
             gameState.current.camera.x += (targetCamX - gameState.current.camera.x) * 0.1;
 
-            // Clamp Camera
-            const levelWidth = gameState.current.level === 1 ? LEVEL_1_WIDTH : LEVEL_2_WIDTH;
+            // Clamp Camera based on Level
+            let levelWidth = LEVEL_1_WIDTH;
+            if (gameState.current.level === 2) levelWidth = LEVEL_2_WIDTH;
+            if (gameState.current.level === 3) levelWidth = 8000;
+
             const maxScroll = levelWidth - CANVAS_WIDTH;
 
             if (gameState.current.camera.x < 0) gameState.current.camera.x = 0;
             if (gameState.current.camera.x > maxScroll) gameState.current.camera.x = maxScroll;
+        }
+
+        // --- CHECK LEVEL COMPLETION ---
+        if (livingPlayers.length > 0 && playersInPortal === livingPlayers.length) {
+             if (gameState.current.portalHoldTimer === undefined) gameState.current.portalHoldTimer = 0;
+             gameState.current.portalHoldTimer++;
+             
+             // Require holding position for 2 seconds (120 frames) to avoid accidental triggers, or less if solo
+             const requiredTime = gameState.current.gameMode === 'solo' ? 30 : 120;
+             
+             if (gameState.current.portalHoldTimer > requiredTime) {
+                 if (gameState.current.level === 1) {
+                     // Transition to Level 2
+                     gameState.current.status = 'transition';
+                     gameState.current.cinematicMode = 'aurora_suction';
+                     callbacks.setGameStatus('transition');
+                     
+                     // After cinematic, load level 2
+                     setTimeout(() => {
+                         callbacks.loadLevel(2);
+                         gameState.current.status = 'playing';
+                         callbacks.setGameStatus('playing');
+                         callbacks.setDialogText([
+                            {name: 'Cemre', text: 'Vay canına! Burası çok güzel!'},
+                            {name: 'Baba', text: 'Kelebek Vadisi... Dikkat et, burası daha sıcak.'}
+                         ]);
+                         callbacks.setShowDialog(true);
+                     }, 2000);
+                 } else if (gameState.current.level === 2) {
+                     // Transition to Level 3
+                     gameState.current.status = 'transition';
+                     gameState.current.cinematicMode = 'aurora_suction';
+                     callbacks.setGameStatus('transition');
+                     
+                     // After cinematic, load level 3
+                     setTimeout(() => {
+                         callbacks.loadLevel(3);
+                         gameState.current.status = 'playing';
+                         callbacks.setGameStatus('playing');
+                         callbacks.setDialogText([
+                            {name: 'Cemre', text: 'Ooooh! Meyveler!'},
+                            {name: 'Baba', text: 'Burası Meyve Cenneti! Hiç canavar yok, sadece eğlence!'},
+                            {name: 'Cemre', text: 'Yaşasın! Hepsini toplayalım!'}
+                         ]);
+                         callbacks.setShowDialog(true);
+                     }, 2000);
+                 } else {
+                     // Win Game (End of Level 3)
+                     gameState.current.status = 'won';
+                     callbacks.setGameStatus('won');
+                     soundManager.playWin();
+                 }
+             }
+        } else {
+            gameState.current.portalHoldTimer = 0;
         }
 
     }, [gameState, inputs, particles, effectParticles, callbacks]);

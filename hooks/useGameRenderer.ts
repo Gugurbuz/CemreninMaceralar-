@@ -144,7 +144,7 @@ export const useGameRenderer = (
         const ctx = bg.getContext('2d');
         if (!ctx) return;
   
-        // BASE GRADIENT (SKY)
+        // BASE GRADIENT
         if (level === 1) {
             const bgGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
             bgGradient.addColorStop(0, '#0f172a'); 
@@ -152,19 +152,33 @@ export const useGameRenderer = (
             ctx.fillStyle = bgGradient;
             ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             
-            // Stars in the very back
+            // Stars
             ctx.fillStyle = 'rgba(255,255,255,0.7)';
             for(let i=0; i<100; i++) {
                 ctx.beginPath();
                 ctx.arc(Math.random()*CANVAS_WIDTH, Math.random()*CANVAS_HEIGHT, Math.random()*1.5, 0, Math.PI*2);
                 ctx.fill();
             }
-        } else {
+        } else if (level === 2) {
             const bgGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
             bgGradient.addColorStop(0, '#7dd3fc'); 
             bgGradient.addColorStop(1, '#c084fc'); 
             ctx.fillStyle = bgGradient;
             ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        } else if (level === 3) {
+            // Level 3: Sunset / Paradise
+            const bgGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+            bgGradient.addColorStop(0, '#f9a8d4'); // Pink
+            bgGradient.addColorStop(0.5, '#fdba74'); // Orange
+            bgGradient.addColorStop(1, '#60a5fa'); // Blue
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            
+            // Sun
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.beginPath();
+            ctx.arc(CANVAS_WIDTH * 0.8, CANVAS_HEIGHT * 0.2, 80, 0, Math.PI*2);
+            ctx.fill();
         }
         bgCanvasRef.current = bg;
     }, []);
@@ -179,10 +193,9 @@ export const useGameRenderer = (
         let opacity = 0;
         if (gameState.current.level === 1) {
             const camX = gameState.current.camera.x;
-            // Start appearing after 6000px, full visibility at 10000px
             opacity = Math.max(0, Math.min(1, (camX - 6000) / 4000));
         } else {
-            return; // No aurora in level 2
+            return; // No aurora in level 2/3
         }
 
         if (opacity <= 0.01) return;
@@ -241,16 +254,16 @@ export const useGameRenderer = (
         for(let i=0; i<2; i++) {
             const offset = i * CANVAS_WIDTH;
             if (level === 1) {
-                // Winter Mountains - Make them look bigger/further
+                // Winter Mountains
                 ctx.fillStyle = '#1e3a8a'; 
                 ctx.beginPath();
                 ctx.moveTo(offset, CANVAS_HEIGHT);
-                ctx.lineTo(offset + 200, 200); // Higher peaks
+                ctx.lineTo(offset + 200, 200); 
                 ctx.lineTo(offset + 500, 450);
                 ctx.lineTo(offset + 800, 150);
                 ctx.lineTo(offset + CANVAS_WIDTH, CANVAS_HEIGHT);
                 ctx.fill();
-            } else {
+            } else if (level === 2) {
                 // Spring Mountains
                 ctx.fillStyle = '#60a5fa'; 
                 ctx.beginPath();
@@ -259,6 +272,13 @@ export const useGameRenderer = (
                 ctx.lineTo(offset + 700, 600);
                 ctx.lineTo(offset + 1000, 350);
                 ctx.lineTo(offset + CANVAS_WIDTH, CANVAS_HEIGHT);
+                ctx.fill();
+            } else {
+                // Level 3: Candy Mountains
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.beginPath();
+                ctx.arc(offset + 200, CANVAS_HEIGHT, 300, 0, Math.PI, true);
+                ctx.arc(offset + 800, CANVAS_HEIGHT, 400, 0, Math.PI, true);
                 ctx.fill();
             }
         }
@@ -279,7 +299,7 @@ export const useGameRenderer = (
                 ctx.ellipse(offset + 200, CANVAS_HEIGHT, 300, 150, 0, 0, Math.PI*2);
                 ctx.ellipse(offset + 800, CANVAS_HEIGHT, 400, 200, 0, 0, Math.PI*2);
                 ctx.fill();
-            } else {
+            } else if (level === 2) {
                 // Spring Green Hills
                 ctx.fillStyle = '#4ade80'; // Lighter green
                 ctx.globalAlpha = 0.6;
@@ -289,6 +309,16 @@ export const useGameRenderer = (
                 ctx.ellipse(offset + 900, CANVAS_HEIGHT, 400, 120, 0, 0, Math.PI*2);
                 ctx.fill();
                 ctx.globalAlpha = 1.0;
+            } else {
+                 // Level 3: Fluffy Clouds
+                 ctx.fillStyle = '#ffffff';
+                 ctx.globalAlpha = 0.6;
+                 ctx.beginPath();
+                 ctx.arc(offset + 100, CANVAS_HEIGHT - 50, 80, 0, Math.PI*2);
+                 ctx.arc(offset + 250, CANVAS_HEIGHT - 30, 100, 0, Math.PI*2);
+                 ctx.arc(offset + 400, CANVAS_HEIGHT - 50, 80, 0, Math.PI*2);
+                 ctx.fill();
+                 ctx.globalAlpha = 1.0;
             }
         }
         ctx.restore();
@@ -460,13 +490,28 @@ export const useGameRenderer = (
           
           if (plat.type === 'ground') {
               ctx.fillRect(plat.position.x, plat.position.y, plat.size.width, plat.size.height);
-              ctx.fillStyle = gameState.current.level === 1 ? '#f8fafc' : '#86efac';
+              // Top detail
+              if (gameState.current.level === 1) ctx.fillStyle = '#f8fafc';
+              else if (gameState.current.level === 2) ctx.fillStyle = '#86efac';
+              else ctx.fillStyle = '#fce7f3'; // Pink grass for level 3
+              
               ctx.fillRect(plat.position.x, plat.position.y, plat.size.width, 10);
+
           } else if (plat.type === 'leaf') {
                ctx.fillStyle = '#22c55e';
                ctx.beginPath();
                ctx.ellipse(plat.position.x + plat.size.width/2, plat.position.y + plat.size.height/2, plat.size.width/2, plat.size.height, 0, 0, Math.PI*2);
                ctx.fill();
+          } else if (plat.type === 'cloud') {
+               // Draw fluffy cloud platform
+               ctx.fillStyle = 'white';
+               const r = plat.size.height / 2;
+               ctx.beginPath();
+               ctx.arc(plat.position.x + r, plat.position.y + r, r, Math.PI * 0.5, Math.PI * 1.5);
+               ctx.arc(plat.position.x + plat.size.width - r, plat.position.y + r, r, Math.PI * 1.5, Math.PI * 0.5);
+               ctx.closePath();
+               ctx.fill();
+
           } else if (plat.type === 'mushroom') {
                const deformation = plat.deformation || 0;
                
@@ -511,7 +556,7 @@ export const useGameRenderer = (
 
                     ctx.restore();
                } else {
-                   // ORIGINAL MUSHROOM RENDERER (Level 2)
+                   // ORIGINAL MUSHROOM RENDERER (Level 2 & 3)
                    const cx = plat.position.x + 50;
                    const cy = plat.position.y + 100;
         
@@ -520,12 +565,16 @@ export const useGameRenderer = (
                    ctx.scale(1 - deformation, 1 + deformation);
                    ctx.translate(-cx, -cy);
         
-                   ctx.fillStyle = '#fde047';
-                   ctx.fillRect(plat.position.x + 30, plat.position.y + 40, 40, 60);
                    ctx.fillStyle = plat.color;
                    ctx.beginPath();
                    ctx.arc(plat.position.x + 50, plat.position.y + 40, 50, Math.PI, 0);
                    ctx.fill();
+
+                   // Stalk
+                   ctx.fillStyle = '#fde047';
+                   ctx.fillRect(plat.position.x + 30, plat.position.y + 40, 40, 60);
+
+                   // Cap Spots
                    ctx.fillStyle = 'rgba(255,255,255,0.6)';
                    ctx.beginPath(); ctx.arc(plat.position.x + 30, plat.position.y + 20, 8, 0, Math.PI*2); ctx.fill();
                    ctx.beginPath(); ctx.arc(plat.position.x + 70, plat.position.y + 30, 6, 0, Math.PI*2); ctx.fill();
@@ -689,6 +738,28 @@ export const useGameRenderer = (
                 const steamOffset = Math.sin(gameState.current.globalTime * 0.1) * 2;
                 ctx.beginPath(); ctx.moveTo(coin.position.x - 3, cy - 10); ctx.lineTo(coin.position.x - 3 + steamOffset, cy - 18);
                 ctx.moveTo(coin.position.x + 3, cy - 10); ctx.lineTo(coin.position.x + 3 + steamOffset, cy - 18); ctx.stroke(); ctx.globalAlpha = 1.0;
+            } else if (coin.type === 'apple') {
+                ctx.fillStyle = '#ef4444'; 
+                ctx.beginPath(); ctx.arc(coin.position.x, cy, coin.size, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#65a30d'; // Leaf
+                ctx.beginPath(); ctx.ellipse(coin.position.x, cy - coin.size, 4, 2, 0, 0, Math.PI*2); ctx.fill();
+            } else if (coin.type === 'cherry') {
+                ctx.fillStyle = '#be123c';
+                ctx.beginPath(); ctx.arc(coin.position.x - 5, cy + 2, coin.size * 0.7, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(coin.position.x + 5, cy + 4, coin.size * 0.7, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = '#65a30d'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(coin.position.x - 5, cy + 2); ctx.lineTo(coin.position.x, cy - 10); ctx.lineTo(coin.position.x + 5, cy + 4); ctx.stroke();
+            } else if (coin.type === 'banana') {
+                ctx.fillStyle = '#facc15';
+                ctx.beginPath();
+                ctx.arc(coin.position.x, cy, coin.size, 0.5, Math.PI - 0.5);
+                ctx.stroke(); // Simple curve
+                // Draw banana shape
+                ctx.beginPath();
+                ctx.moveTo(coin.position.x - 10, cy - 5);
+                ctx.quadraticCurveTo(coin.position.x, cy + 10, coin.position.x + 10, cy - 10);
+                ctx.quadraticCurveTo(coin.position.x, cy + 5, coin.position.x - 10, cy - 5);
+                ctx.fill();
             }
     
             const shimmerPos = (gameState.current.globalTime * 5) % (coin.size * 4) - coin.size * 2;

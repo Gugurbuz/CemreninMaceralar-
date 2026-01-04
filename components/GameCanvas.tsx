@@ -2,8 +2,10 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Player, GameState, Particle, EffectParticle } from '../types';
 import { 
-  getInitialPlayers, getWinterPlatforms, getWinterCoins, getWinterEnemies, getWinterCheckpoints,
+  getInitialPlayers, 
+  getWinterPlatforms, getWinterCoins, getWinterEnemies, getWinterCheckpoints,
   getButterflyPlatforms, getButterflyCoins, getButterflyEnemies, getButterflyCheckpoints,
+  getFruitParadisePlatforms, getFruitParadiseCoins, getFruitParadiseEnemies, getFruitParadiseCheckpoints,
   INITIAL_RESPAWN_POINT, 
   CANVAS_WIDTH, CANVAS_HEIGHT
 } from '../constants';
@@ -177,11 +179,17 @@ export const GameCanvas: React.FC = () => {
           gameState.current.coins = getWinterCoins();
           gameState.current.enemies = getWinterEnemies();
           gameState.current.checkpoints = getWinterCheckpoints();
-      } else {
+      } else if (level === 2) {
           gameState.current.platforms = getButterflyPlatforms();
           gameState.current.coins = getButterflyCoins();
           gameState.current.enemies = getButterflyEnemies();
           gameState.current.checkpoints = getButterflyCheckpoints();
+      } else {
+          // Level 3
+          gameState.current.platforms = getFruitParadisePlatforms();
+          gameState.current.coins = getFruitParadiseCoins();
+          gameState.current.enemies = getFruitParadiseEnemies();
+          gameState.current.checkpoints = getFruitParadiseCheckpoints();
       }
       
       gameState.current.camera = { x: 0, y: 0 };
@@ -327,6 +335,15 @@ export const GameCanvas: React.FC = () => {
             {name: 'Baba', text: 'Elbette kızım! Sadece dikkatli olmamız gerek.'},
             {name: 'Cemre', text: 'Yaşasın! Hadi gidelim!'}
         ]);
+    } else if (level === 2) {
+        triggerDialog([
+            {name: 'Baba', text: 'Burası Kelebek Vadisi. Çok uzun bir yolumuz var.'}
+        ]);
+    } else if (level === 3) {
+        triggerDialog([
+            {name: 'Cemre', text: 'Meyve Cenneti!'},
+            {name: 'Baba', text: 'Tadını çıkaralım!'}
+        ]);
     }
   };
 
@@ -388,6 +405,13 @@ export const GameCanvas: React.FC = () => {
       return `${m}:${s}`;
   };
 
+  const getLevelName = (lvl: number) => {
+      if (lvl === 1) return 'Bölüm 1: Kış Masalı';
+      if (lvl === 2) return 'Bölüm 2: Kelebek Vadisi';
+      if (lvl === 3) return 'Bölüm 3: Meyve Cenneti';
+      return 'Bölüm ?';
+  }
+
   return (
     <div className="relative w-full h-full flex flex-col items-center justify-center bg-sky-900">
       <div className="relative shadow-2xl border-8 border-white rounded-lg overflow-hidden bg-black" style={{ width: 'min(1280px, 98vw)', height: 'auto', aspectRatio: '16/9' }}>
@@ -419,7 +443,7 @@ export const GameCanvas: React.FC = () => {
                     <div className="flex flex-col gap-2 pointer-events-auto">
                         <div className="bg-white/10 backdrop-blur-md rounded-xl p-2 border border-white/20 shadow-lg">
                              <div className="text-white/80 text-xs font-bold uppercase tracking-wider mb-1 px-1">
-                                {hudState.level === 1 ? 'Bölüm 1: Kış Masalı' : 'Bölüm 2: Kelebek Vadisi'}
+                                {getLevelName(hudState.level)}
                              </div>
                              <div className="flex items-center text-white px-2">
                                 <span className="text-3xl mr-2">🥐</span>
@@ -652,6 +676,15 @@ export const GameCanvas: React.FC = () => {
                           <span>Bölüm 2</span>
                           <span className="text-sm font-normal mt-1 opacity-90">Kelebek Vadisi</span>
                         </button>
+                        
+                        <button 
+                          onClick={() => startNewGame(3)}
+                          className="px-8 py-6 bg-pink-500 hover:bg-pink-400 text-white rounded-xl text-2xl font-bold shadow-lg transform transition hover:scale-105 active:scale-95 flex flex-col items-center w-64 border-b-8 border-pink-800"
+                        >
+                          <span className="text-4xl mb-2">🍎</span>
+                          <span>Bölüm 3</span>
+                          <span className="text-sm font-normal mt-1 opacity-90">Meyve Cenneti</span>
+                        </button>
                     </div>
                     <button 
                         onClick={() => setMenuStep('lives_select')}
@@ -670,8 +703,8 @@ export const GameCanvas: React.FC = () => {
 
         {gameStatus === 'won' && (
           <div className="absolute inset-0 bg-indigo-900/90 flex flex-col items-center justify-center text-white animate-fade-in z-50">
-            <h1 className="text-6xl font-black text-green-300 drop-shadow-lg mb-4">✨ Oyun Bitti! ✨</h1>
-            <p className="text-2xl font-bold mb-8 text-sky-200">Kelebek Vadisine ulaştınız!</p>
+            <h1 className="text-6xl font-black text-green-300 drop-shadow-lg mb-4">✨ TEBRİKLER! ✨</h1>
+            <p className="text-2xl font-bold mb-8 text-sky-200">Bütün bölümleri bitirdiniz!</p>
             <div className="text-4xl font-mono mb-8 bg-black/20 px-8 py-2 rounded-lg border border-white/20">Puan: {hudState.score}</div>
             <button 
               onClick={() => {

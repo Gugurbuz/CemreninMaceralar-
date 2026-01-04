@@ -32,13 +32,14 @@ export interface Player {
   coyoteTimer: number; // Frames allowing jump after leaving ground
   jumpBufferTimer: number; // Frames remembering jump press before hitting ground
   mushroomCooldown: number; // New: Prevent double bouncing on mushrooms
+  standingOn: Platform['type'] | null; // Track what the player is standing on
 }
 
 export interface Platform {
   id?: number; // Unique ID for logic linking
   position: Vector2;
   size: Size;
-  type: 'ground' | 'block' | 'pipe' | 'finish' | 'ice' | 'crumbly' | 'door' | 'plate' | 'aurora' | 'leaf' | 'mushroom' | 'totem';
+  type: 'ground' | 'block' | 'pipe' | 'finish' | 'ice' | 'crumbly' | 'door' | 'plate' | 'aurora' | 'leaf' | 'mushroom' | 'totem' | 'cloud';
   color: string;
   // State for mechanics
   isPressed?: boolean; // For plates
@@ -59,7 +60,7 @@ export interface Coin {
   size: number; // radius
   collected: boolean;
   baseY: number; // for bobbing animation
-  type: 'gold' | 'kanelbulle' | 'hot-chocolate'; 
+  type: 'gold' | 'kanelbulle' | 'hot-chocolate' | 'apple' | 'cherry' | 'banana'; 
   isNectarDrop?: boolean; // For win cinematic
 }
 
@@ -125,7 +126,7 @@ export interface GameConfig {
 }
 
 export interface GameState {
-  level: number; // 1 or 2
+  level: number; // 1, 2 or 3
   gameMode: 'solo' | 'multi'; 
   runConfig: GameConfig; // Store initial config for restarts
   players: Player[];
