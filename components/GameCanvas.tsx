@@ -149,7 +149,7 @@ export const GameCanvas: React.FC = () => {
       if (dialogTimeoutRef.current) clearTimeout(dialogTimeoutRef.current);
       setDialogText(lines);
       setShowDialog(true);
-      dialogTimeoutRef.current = window.setTimeout(() => setShowDialog(false), 5000);
+      dialogTimeoutRef.current = window.setTimeout(() => setShowDialog(false), 3000);
   };
   
   // Setup logic for Physics Hook
