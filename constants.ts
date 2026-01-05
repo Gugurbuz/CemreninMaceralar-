@@ -18,7 +18,7 @@ export const JUMP_BUFFER = 8; // Frames to remember jump press before hitting gr
 // Level Boundaries for Camera Clamping (Extended)
 export const LEVEL_1_WIDTH = 14000;
 export const LEVEL_2_WIDTH = 15000; // Extended Level 2
-export const LEVEL_3_WIDTH = 8000;  // Level 3 Length
+export const LEVEL_3_WIDTH = 5500;  // Level 3 Length
 export const LEVEL_4_WIDTH = 10000; // Level 4 Length (Boss Level)
 
 export const INITIAL_RESPAWN_POINT = { x: 100, y: 300 };
@@ -249,65 +249,159 @@ export const getButterflyCheckpoints = (): Checkpoint[] => [
 ];
 
 // --- LEVEL 3: FRUIT PARADISE (BONUS LEVEL) ---
-// No enemies, lots of bouncing, special fruits
+// No enemies, lots of bouncing, special fruits - FAST & FUN!
 export const getFruitParadisePlatforms = (): Platform[] => [
-    { position: { x: -200, y: 600 }, size: { width: 1000, height: 200 }, type: 'ground', color: '#fbcfe8' }, // Pink clouds ground
-    
-    // Bouncy Cloud Run
-    { position: { x: 1000, y: 500 }, size: { width: 150, height: 50 }, type: 'cloud', color: '#fff' },
-    { position: { x: 1300, y: 400 }, size: { width: 150, height: 50 }, type: 'cloud', color: '#fff' },
-    { position: { x: 1600, y: 300 }, size: { width: 150, height: 50 }, type: 'cloud', color: '#fff' },
-    
-    { position: { x: 2000, y: 500 }, size: { width: 500, height: 50 }, type: 'mushroom', color: '#fca5a5', deformation: 0 }, // Giant trampoline
-    
-    { position: { x: 2800, y: 400 }, size: { width: 150, height: 20 }, type: 'leaf', color: '#86efac' },
-    { position: { x: 3100, y: 350 }, size: { width: 150, height: 20 }, type: 'leaf', color: '#86efac' },
-    
-    // Fruit Tree Layout
-    { position: { x: 3500, y: 600 }, size: { width: 1000, height: 200 }, type: 'ground', color: '#fbcfe8' },
-    
-    // Sky High
-    { position: { x: 4800, y: 500 }, size: { width: 200, height: 50 }, type: 'cloud', color: '#fff' },
-    { position: { x: 5200, y: 400 }, size: { width: 200, height: 50 }, type: 'cloud', color: '#fff' },
-    { position: { x: 5600, y: 300 }, size: { width: 200, height: 50 }, type: 'cloud', color: '#fff' },
-    
-    // Final Safe Platform
-    { position: { x: 6000, y: 500 }, size: { width: 2000, height: 200 }, type: 'ground', color: '#fbcfe8' },
-    { position: { x: 7500, y: -200 }, size: { width: 100, height: 1000 }, type: 'ground', color: '#fbcfe8' }, // Wall
+    // Starting Fruit Garden
+    { position: { x: -200, y: 600 }, size: { width: 800, height: 200 }, type: 'ground', color: '#fbcfe8' },
+
+    // Cloud Hopping Trail - Easy continuous jumps
+    { position: { x: 700, y: 550 }, size: { width: 120, height: 40 }, type: 'cloud', color: '#fff' },
+    { position: { x: 900, y: 500 }, size: { width: 120, height: 40 }, type: 'cloud', color: '#fff' },
+    { position: { x: 1100, y: 450 }, size: { width: 120, height: 40 }, type: 'cloud', color: '#fff' },
+    { position: { x: 1300, y: 500 }, size: { width: 120, height: 40 }, type: 'cloud', color: '#fff' },
+    { position: { x: 1500, y: 550 }, size: { width: 120, height: 40 }, type: 'cloud', color: '#fff' },
+
+    // Super Bounce Zone 1
+    { position: { x: 1750, y: 600 }, size: { width: 150, height: 60 }, type: 'mushroom', color: '#fca5a5', deformation: 0 },
+    { position: { x: 2000, y: 600 }, size: { width: 150, height: 60 }, type: 'mushroom', color: '#fca5a5', deformation: 0 },
+    { position: { x: 2250, y: 600 }, size: { width: 150, height: 60 }, type: 'mushroom', color: '#fca5a5', deformation: 0 },
+
+    // Fruit Orchard Ground
+    { position: { x: 2500, y: 650 }, size: { width: 900, height: 150 }, type: 'ground', color: '#fbcfe8' },
+
+    // Mid-Level Mushroom Platforms
+    { position: { x: 2700, y: 550 }, size: { width: 100, height: 50 }, type: 'mushroom', color: '#fca5a5', deformation: 0 },
+    { position: { x: 3100, y: 550 }, size: { width: 100, height: 50 }, type: 'mushroom', color: '#fca5a5', deformation: 0 },
+
+    // Sky High Section with alternating platforms
+    { position: { x: 3500, y: 500 }, size: { width: 120, height: 40 }, type: 'cloud', color: '#fff' },
+    { position: { x: 3700, y: 400 }, size: { width: 120, height: 40 }, type: 'cloud', color: '#fff' },
+    { position: { x: 3900, y: 350 }, size: { width: 100, height: 50 }, type: 'mushroom', color: '#fca5a5', deformation: 0 },
+    { position: { x: 4100, y: 400 }, size: { width: 120, height: 40 }, type: 'cloud', color: '#fff' },
+    { position: { x: 4300, y: 500 }, size: { width: 120, height: 40 }, type: 'cloud', color: '#fff' },
+
+    // Giant Bounce Platform
+    { position: { x: 4550, y: 600 }, size: { width: 300, height: 60 }, type: 'mushroom', color: '#fca5a5', deformation: 0 },
+
+    // Leaf Platforms
+    { position: { x: 4300, y: 350 }, size: { width: 100, height: 15 }, type: 'leaf', color: '#86efac' },
+    { position: { x: 4500, y: 300 }, size: { width: 100, height: 15 }, type: 'leaf', color: '#86efac' },
+
+    // Final Celebration Ground
+    { position: { x: 4900, y: 650 }, size: { width: 800, height: 150 }, type: 'ground', color: '#fbcfe8' },
+    { position: { x: 5600, y: -200 }, size: { width: 100, height: 1000 }, type: 'ground', color: '#fbcfe8' }, // Wall
 
     // The Final Portal
-    { position: { x: 7000, y: 350 }, size: { width: 150, height: 150 }, type: 'aurora', color: 'transparent', requiresCoop: true },
+    { position: { x: 5300, y: 500 }, size: { width: 150, height: 150 }, type: 'aurora', color: 'transparent', requiresCoop: true },
 ];
 
 export const getFruitParadiseCoins = (): Coin[] => [
-    // Apples (Red)
-    { id: 301, position: { x: 1075, y: 400 }, size: 16, collected: false, baseY: 400, type: 'apple' },
-    { id: 302, position: { x: 1375, y: 300 }, size: 16, collected: false, baseY: 300, type: 'apple' },
-    
-    // Bananas (Yellow - Curves)
-    { id: 310, position: { x: 2100, y: 300 }, size: 16, collected: false, baseY: 300, type: 'banana' },
-    { id: 311, position: { x: 2250, y: 250 }, size: 16, collected: false, baseY: 250, type: 'banana' },
-    { id: 312, position: { x: 2400, y: 300 }, size: 16, collected: false, baseY: 300, type: 'banana' },
+    // Starting Garden - Ground Level Fruits (10 fruits)
+    { id: 301, position: { x: 100, y: 550 }, size: 16, collected: false, baseY: 550, type: 'apple' },
+    { id: 302, position: { x: 200, y: 550 }, size: 16, collected: false, baseY: 550, type: 'banana' },
+    { id: 303, position: { x: 300, y: 550 }, size: 14, collected: false, baseY: 550, type: 'cherry' },
+    { id: 304, position: { x: 400, y: 550 }, size: 16, collected: false, baseY: 550, type: 'apple' },
+    { id: 305, position: { x: 150, y: 500 }, size: 16, collected: false, baseY: 500, type: 'banana' },
+    { id: 306, position: { x: 250, y: 500 }, size: 14, collected: false, baseY: 500, type: 'cherry' },
+    { id: 307, position: { x: 350, y: 500 }, size: 16, collected: false, baseY: 500, type: 'apple' },
+    { id: 308, position: { x: 450, y: 500 }, size: 16, collected: false, baseY: 500, type: 'banana' },
+    { id: 309, position: { x: 200, y: 450 }, size: 14, collected: false, baseY: 450, type: 'cherry' },
+    { id: 310, position: { x: 300, y: 450 }, size: 16, collected: false, baseY: 450, type: 'apple' },
 
-    // Cherries (Pairs)
-    { id: 320, position: { x: 3700, y: 500 }, size: 14, collected: false, baseY: 500, type: 'cherry' },
-    { id: 321, position: { x: 3900, y: 500 }, size: 14, collected: false, baseY: 500, type: 'cherry' },
-    { id: 322, position: { x: 4100, y: 500 }, size: 14, collected: false, baseY: 500, type: 'cherry' },
+    // Cloud Trail Fruits (10 fruits)
+    { id: 311, position: { x: 750, y: 500 }, size: 16, collected: false, baseY: 500, type: 'apple' },
+    { id: 312, position: { x: 800, y: 450 }, size: 16, collected: false, baseY: 450, type: 'banana' },
+    { id: 313, position: { x: 950, y: 450 }, size: 14, collected: false, baseY: 450, type: 'cherry' },
+    { id: 314, position: { x: 1000, y: 400 }, size: 16, collected: false, baseY: 400, type: 'apple' },
+    { id: 315, position: { x: 1150, y: 400 }, size: 16, collected: false, baseY: 400, type: 'banana' },
+    { id: 316, position: { x: 1200, y: 350 }, size: 14, collected: false, baseY: 350, type: 'cherry' },
+    { id: 317, position: { x: 1350, y: 450 }, size: 16, collected: false, baseY: 450, type: 'apple' },
+    { id: 318, position: { x: 1400, y: 400 }, size: 16, collected: false, baseY: 400, type: 'banana' },
+    { id: 319, position: { x: 1550, y: 500 }, size: 14, collected: false, baseY: 500, type: 'cherry' },
+    { id: 320, position: { x: 1600, y: 450 }, size: 16, collected: false, baseY: 450, type: 'apple' },
 
-    // Big Mix
-    { id: 330, position: { x: 4900, y: 400 }, size: 16, collected: false, baseY: 400, type: 'apple' },
-    { id: 331, position: { x: 5300, y: 300 }, size: 16, collected: false, baseY: 300, type: 'banana' },
-    { id: 332, position: { x: 5700, y: 200 }, size: 16, collected: false, baseY: 200, type: 'cherry' },
-    
-    // Bonus End
-    { id: 340, position: { x: 6500, y: 400 }, size: 20, collected: false, baseY: 400, type: 'kanelbulle' },
-    { id: 341, position: { x: 6700, y: 400 }, size: 20, collected: false, baseY: 400, type: 'hot-chocolate' },
+    // Bounce Zone Arc Fruits (12 fruits)
+    { id: 321, position: { x: 1800, y: 450 }, size: 16, collected: false, baseY: 450, type: 'banana' },
+    { id: 322, position: { x: 1850, y: 350 }, size: 14, collected: false, baseY: 350, type: 'cherry' },
+    { id: 323, position: { x: 1900, y: 250 }, size: 16, collected: false, baseY: 250, type: 'apple' },
+    { id: 324, position: { x: 1950, y: 200 }, size: 16, collected: false, baseY: 200, type: 'banana' },
+    { id: 325, position: { x: 2050, y: 450 }, size: 16, collected: false, baseY: 450, type: 'apple' },
+    { id: 326, position: { x: 2100, y: 350 }, size: 14, collected: false, baseY: 350, type: 'cherry' },
+    { id: 327, position: { x: 2150, y: 250 }, size: 16, collected: false, baseY: 250, type: 'banana' },
+    { id: 328, position: { x: 2200, y: 200 }, size: 16, collected: false, baseY: 200, type: 'apple' },
+    { id: 329, position: { x: 2300, y: 450 }, size: 14, collected: false, baseY: 450, type: 'cherry' },
+    { id: 330, position: { x: 2350, y: 350 }, size: 16, collected: false, baseY: 350, type: 'banana' },
+    { id: 331, position: { x: 2400, y: 250 }, size: 16, collected: false, baseY: 250, type: 'apple' },
+    { id: 332, position: { x: 2450, y: 200 }, size: 14, collected: false, baseY: 200, type: 'cherry' },
+
+    // Fruit Orchard - Dense Cluster (18 fruits)
+    { id: 333, position: { x: 2550, y: 600 }, size: 16, collected: false, baseY: 600, type: 'apple' },
+    { id: 334, position: { x: 2650, y: 600 }, size: 16, collected: false, baseY: 600, type: 'banana' },
+    { id: 335, position: { x: 2750, y: 600 }, size: 14, collected: false, baseY: 600, type: 'cherry' },
+    { id: 336, position: { x: 2850, y: 600 }, size: 16, collected: false, baseY: 600, type: 'apple' },
+    { id: 337, position: { x: 2950, y: 600 }, size: 16, collected: false, baseY: 600, type: 'banana' },
+    { id: 338, position: { x: 3050, y: 600 }, size: 14, collected: false, baseY: 600, type: 'cherry' },
+    { id: 339, position: { x: 3150, y: 600 }, size: 16, collected: false, baseY: 600, type: 'apple' },
+    { id: 340, position: { x: 3250, y: 600 }, size: 16, collected: false, baseY: 600, type: 'banana' },
+    { id: 341, position: { x: 3350, y: 600 }, size: 14, collected: false, baseY: 600, type: 'cherry' },
+    { id: 342, position: { x: 2600, y: 550 }, size: 16, collected: false, baseY: 550, type: 'apple' },
+    { id: 343, position: { x: 2700, y: 550 }, size: 16, collected: false, baseY: 550, type: 'banana' },
+    { id: 344, position: { x: 2800, y: 550 }, size: 14, collected: false, baseY: 550, type: 'cherry' },
+    { id: 345, position: { x: 2900, y: 550 }, size: 16, collected: false, baseY: 550, type: 'apple' },
+    { id: 346, position: { x: 3000, y: 550 }, size: 16, collected: false, baseY: 550, type: 'banana' },
+    { id: 347, position: { x: 3100, y: 550 }, size: 14, collected: false, baseY: 550, type: 'cherry' },
+    { id: 348, position: { x: 3200, y: 550 }, size: 16, collected: false, baseY: 550, type: 'apple' },
+    { id: 349, position: { x: 3300, y: 550 }, size: 16, collected: false, baseY: 550, type: 'banana' },
+    { id: 350, position: { x: 2900, y: 500 }, size: 20, collected: false, baseY: 500, type: 'hot-chocolate' },
+
+    // Sky High Section (12 fruits)
+    { id: 351, position: { x: 3550, y: 450 }, size: 16, collected: false, baseY: 450, type: 'apple' },
+    { id: 352, position: { x: 3600, y: 400 }, size: 16, collected: false, baseY: 400, type: 'banana' },
+    { id: 353, position: { x: 3750, y: 350 }, size: 14, collected: false, baseY: 350, type: 'cherry' },
+    { id: 354, position: { x: 3800, y: 300 }, size: 16, collected: false, baseY: 300, type: 'apple' },
+    { id: 355, position: { x: 3950, y: 250 }, size: 16, collected: false, baseY: 250, type: 'banana' },
+    { id: 356, position: { x: 4000, y: 200 }, size: 14, collected: false, baseY: 200, type: 'cherry' },
+    { id: 357, position: { x: 4150, y: 350 }, size: 16, collected: false, baseY: 350, type: 'apple' },
+    { id: 358, position: { x: 4200, y: 300 }, size: 16, collected: false, baseY: 300, type: 'banana' },
+    { id: 359, position: { x: 4350, y: 450 }, size: 14, collected: false, baseY: 450, type: 'cherry' },
+    { id: 360, position: { x: 4400, y: 400 }, size: 16, collected: false, baseY: 400, type: 'apple' },
+    { id: 361, position: { x: 4350, y: 300 }, size: 16, collected: false, baseY: 300, type: 'banana' },
+    { id: 362, position: { x: 4550, y: 250 }, size: 14, collected: false, baseY: 250, type: 'cherry' },
+
+    // Giant Bounce Fruits (8 fruits)
+    { id: 363, position: { x: 4600, y: 450 }, size: 16, collected: false, baseY: 450, type: 'apple' },
+    { id: 364, position: { x: 4650, y: 350 }, size: 16, collected: false, baseY: 350, type: 'banana' },
+    { id: 365, position: { x: 4700, y: 250 }, size: 14, collected: false, baseY: 250, type: 'cherry' },
+    { id: 366, position: { x: 4750, y: 150 }, size: 16, collected: false, baseY: 150, type: 'apple' },
+    { id: 367, position: { x: 4800, y: 100 }, size: 16, collected: false, baseY: 100, type: 'banana' },
+    { id: 368, position: { x: 4700, y: 450 }, size: 14, collected: false, baseY: 450, type: 'cherry' },
+    { id: 369, position: { x: 4750, y: 350 }, size: 16, collected: false, baseY: 350, type: 'apple' },
+    { id: 370, position: { x: 4800, y: 250 }, size: 16, collected: false, baseY: 250, type: 'banana' },
+
+    // Final Celebration (12 fruits + bonuses)
+    { id: 371, position: { x: 4950, y: 600 }, size: 16, collected: false, baseY: 600, type: 'apple' },
+    { id: 372, position: { x: 5000, y: 600 }, size: 16, collected: false, baseY: 600, type: 'banana' },
+    { id: 373, position: { x: 5050, y: 600 }, size: 14, collected: false, baseY: 600, type: 'cherry' },
+    { id: 374, position: { x: 5100, y: 600 }, size: 16, collected: false, baseY: 600, type: 'apple' },
+    { id: 375, position: { x: 5150, y: 600 }, size: 16, collected: false, baseY: 600, type: 'banana' },
+    { id: 376, position: { x: 5200, y: 600 }, size: 14, collected: false, baseY: 600, type: 'cherry' },
+    { id: 377, position: { x: 5250, y: 600 }, size: 16, collected: false, baseY: 600, type: 'apple' },
+    { id: 378, position: { x: 5300, y: 600 }, size: 16, collected: false, baseY: 600, type: 'banana' },
+    { id: 379, position: { x: 5350, y: 600 }, size: 14, collected: false, baseY: 600, type: 'cherry' },
+    { id: 380, position: { x: 5400, y: 600 }, size: 16, collected: false, baseY: 600, type: 'apple' },
+    { id: 381, position: { x: 5050, y: 550 }, size: 20, collected: false, baseY: 550, type: 'kanelbulle' },
+    { id: 382, position: { x: 5200, y: 550 }, size: 20, collected: false, baseY: 550, type: 'kanelbulle' },
+    { id: 383, position: { x: 5350, y: 550 }, size: 20, collected: false, baseY: 550, type: 'hot-chocolate' },
+    { id: 384, position: { x: 5100, y: 500 }, size: 20, collected: false, baseY: 500, type: 'kanelbulle' },
+    { id: 385, position: { x: 5300, y: 500 }, size: 20, collected: false, baseY: 500, type: 'hot-chocolate' },
 ];
 
 export const getFruitParadiseEnemies = (): Enemy[] => []; // No enemies!
 
 export const getFruitParadiseCheckpoints = (): Checkpoint[] => [
-    { id: 301, position: { x: 3000, y: 400 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 301, position: { x: 1650, y: 550 }, size: { width: 40, height: 60 }, triggered: false }, // After cloud trail
+    { id: 302, position: { x: 2600, y: 600 }, size: { width: 40, height: 60 }, triggered: false }, // In fruit orchard
+    { id: 303, position: { x: 4200, y: 450 }, size: { width: 40, height: 60 }, triggered: false }, // After sky high section
 ];
 
 // --- LEVEL 4: AURORA'S GUARDIAN (BOSS LEVEL) ---
