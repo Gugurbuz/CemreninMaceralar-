@@ -516,30 +516,40 @@ export const useGameRenderer = (
                ctx.beginPath();
                ctx.ellipse(plat.position.x + plat.size.width/2, plat.position.y + plat.size.height/2, plat.size.width/2, plat.size.height, 0, 0, Math.PI*2);
 
-               // Fill
-               ctx.fillStyle = '#22c55e';
+               // Fill with bright green
+               ctx.fillStyle = '#86efac';
                ctx.fill();
 
-               // Outline for visibility
-               ctx.strokeStyle = 'rgba(34, 139, 34, 0.8)';
-               ctx.lineWidth = 2;
+               // Strong outline for visibility against sunset background
+               ctx.strokeStyle = '#16a34a';
+               ctx.lineWidth = 3;
                ctx.stroke();
           } else if (plat.type === 'cloud') {
-               // Draw fluffy cloud platform with outline for visibility
+               // Draw fluffy cloud platform with strong outline for visibility
                const r = plat.size.height / 2;
+               const cx1 = plat.position.x + r;
+               const cy = plat.position.y + r;
+               const cx2 = plat.position.x + plat.size.width - r;
 
-               // Shadow/outline for visibility
-               ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
-               ctx.lineWidth = 3;
                ctx.beginPath();
-               ctx.arc(plat.position.x + r, plat.position.y + r, r, Math.PI * 0.5, Math.PI * 1.5);
-               ctx.arc(plat.position.x + plat.size.width - r, plat.position.y + r, r, Math.PI * 1.5, Math.PI * 0.5);
+               // Left semicircle
+               ctx.arc(cx1, cy, r, Math.PI * 0.5, Math.PI * 1.5);
+               // Top line
+               ctx.lineTo(cx2, plat.position.y);
+               // Right semicircle
+               ctx.arc(cx2, cy, r, Math.PI * 1.5, Math.PI * 0.5);
+               // Bottom line
+               ctx.lineTo(cx1, plat.position.y + plat.size.height);
                ctx.closePath();
-               ctx.stroke();
 
                // White fill
                ctx.fillStyle = 'white';
                ctx.fill();
+
+               // Dark outline for visibility against sunset background
+               ctx.strokeStyle = '#64748b';
+               ctx.lineWidth = 3;
+               ctx.stroke();
 
           } else if (plat.type === 'mushroom') {
                const deformation = plat.deformation || 0;
@@ -585,30 +595,40 @@ export const useGameRenderer = (
 
                     ctx.restore();
                } else {
-                   // ORIGINAL MUSHROOM RENDERER (Level 2 & 3)
-                   const cx = plat.position.x + 50;
-                   const cy = plat.position.y + 100;
-        
+                   // DYNAMIC MUSHROOM RENDERER (Level 2 & 3)
+                   const width = plat.size.width;
+                   const height = plat.size.height;
+                   const cx = plat.position.x + width / 2;
+                   const cy = plat.position.y + height / 2;
+
                    ctx.save();
                    ctx.translate(cx, cy);
                    ctx.scale(1 - deformation, 1 + deformation);
                    ctx.translate(-cx, -cy);
-        
+
+                   // Mushroom Cap
+                   const capRadius = width / 2;
+                   const capY = plat.position.y + height * 0.4;
                    ctx.fillStyle = plat.color;
                    ctx.beginPath();
-                   ctx.arc(plat.position.x + 50, plat.position.y + 40, 50, Math.PI, 0);
+                   ctx.arc(cx, capY, capRadius, Math.PI, 0);
                    ctx.fill();
 
                    // Stalk
+                   const stalkWidth = width * 0.4;
+                   const stalkHeight = height * 0.6;
+                   const stalkX = cx - stalkWidth / 2;
+                   const stalkY = capY;
                    ctx.fillStyle = '#fde047';
-                   ctx.fillRect(plat.position.x + 30, plat.position.y + 40, 40, 60);
+                   ctx.fillRect(stalkX, stalkY, stalkWidth, stalkHeight);
 
-                   // Cap Spots
+                   // Cap Spots (scale with size)
+                   const spotSize = Math.max(4, capRadius * 0.15);
                    ctx.fillStyle = 'rgba(255,255,255,0.6)';
-                   ctx.beginPath(); ctx.arc(plat.position.x + 30, plat.position.y + 20, 8, 0, Math.PI*2); ctx.fill();
-                   ctx.beginPath(); ctx.arc(plat.position.x + 70, plat.position.y + 30, 6, 0, Math.PI*2); ctx.fill();
-                   ctx.beginPath(); ctx.arc(plat.position.x + 50, plat.position.y + 10, 5, 0, Math.PI*2); ctx.fill();
-                   
+                   ctx.beginPath(); ctx.arc(cx - capRadius * 0.4, capY - capRadius * 0.4, spotSize, 0, Math.PI*2); ctx.fill();
+                   ctx.beginPath(); ctx.arc(cx + capRadius * 0.4, capY - capRadius * 0.2, spotSize * 0.75, 0, Math.PI*2); ctx.fill();
+                   ctx.beginPath(); ctx.arc(cx, capY - capRadius * 0.6, spotSize * 0.6, 0, Math.PI*2); ctx.fill();
+
                    ctx.restore();
                }
     
@@ -781,14 +801,13 @@ export const useGameRenderer = (
             } else if (coin.type === 'banana') {
                 ctx.fillStyle = '#facc15';
                 ctx.beginPath();
-                ctx.arc(coin.position.x, cy, coin.size, 0.5, Math.PI - 0.5);
-                ctx.stroke(); // Simple curve
-                // Draw banana shape
-                ctx.beginPath();
                 ctx.moveTo(coin.position.x - 10, cy - 5);
                 ctx.quadraticCurveTo(coin.position.x, cy + 10, coin.position.x + 10, cy - 10);
                 ctx.quadraticCurveTo(coin.position.x, cy + 5, coin.position.x - 10, cy - 5);
                 ctx.fill();
+                ctx.strokeStyle = '#eab308';
+                ctx.lineWidth = 2;
+                ctx.stroke();
             }
     
             const shimmerPos = (gameState.current.globalTime * 5) % (coin.size * 4) - coin.size * 2;
