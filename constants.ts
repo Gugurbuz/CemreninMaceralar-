@@ -406,60 +406,91 @@ export const getFruitParadiseCheckpoints = (): Checkpoint[] => [
 
 // --- LEVEL 4: AURORA'S GUARDIAN (BOSS LEVEL) ---
 export const getBossLevelPlatforms = (): Platform[] => [
-    // Starting platform - softer colors
-    { position: { x: -200, y: 600 }, size: { width: 1200, height: 200 }, type: 'ground', color: '#475569' },
+    // Temple entrance
+    { position: { x: -200, y: 600 }, size: { width: 1000, height: 200 }, type: 'ground', color: '#475569' },
 
-    // Main arena floor - neutral gray
-    { position: { x: 1200, y: 650 }, size: { width: 3000, height: 150 }, type: 'ground', color: '#64748b' },
+    // Preparation zone with pillars
+    { position: { x: 900, y: 550 }, size: { width: 150, height: 20 }, type: 'block', color: '#94a3b8' },
+    { position: { x: 900, y: 300 }, size: { width: 30, height: 250 }, type: 'block', color: '#64748b' },
 
-    // Side platforms for dodging - visible but not harsh
-    { position: { x: 1500, y: 450 }, size: { width: 200, height: 20 }, type: 'block', color: '#94a3b8' },
-    { position: { x: 2200, y: 350 }, size: { width: 200, height: 20 }, type: 'block', color: '#94a3b8' },
-    { position: { x: 2900, y: 450 }, size: { width: 200, height: 20 }, type: 'block', color: '#94a3b8' },
-    { position: { x: 3600, y: 350 }, size: { width: 200, height: 20 }, type: 'block', color: '#94a3b8' },
+    // Main arena floor - expanded
+    { position: { x: 1200, y: 650 }, size: { width: 3500, height: 150 }, type: 'ground', color: '#64748b' },
 
-    // Emergency mushroom - calmer color
-    { position: { x: 2400, y: 570 }, size: { width: 100, height: 80 }, type: 'mushroom', color: '#60a5fa', deformation: 0 },
+    // Left zone - dodging platforms
+    { position: { x: 1400, y: 500 }, size: { width: 180, height: 20 }, type: 'block', color: '#94a3b8' },
+    { position: { x: 1650, y: 380 }, size: { width: 180, height: 20 }, type: 'block', color: '#94a3b8' },
+    { position: { x: 1400, y: 260 }, size: { width: 180, height: 20 }, type: 'crumbly', color: '#94a3b8', isFalling: false, fallTimer: 60, maxFallTimer: 60, respawnTimer: 0 },
 
-    // Ice hazards - softer blue
-    { position: { x: 1800, y: 600 }, size: { width: 150, height: 50 }, type: 'ice', color: '#93c5fd' },
-    { position: { x: 3200, y: 600 }, size: { width: 150, height: 50 }, type: 'ice', color: '#93c5fd' },
+    // Center zone - tactical mushrooms
+    { position: { x: 2300, y: 570 }, size: { width: 120, height: 80 }, type: 'mushroom', color: '#60a5fa', deformation: 0 },
+    { position: { x: 2650, y: 570 }, size: { width: 120, height: 80 }, type: 'mushroom', color: '#60a5fa', deformation: 0 },
+    { position: { x: 2475, y: 400 }, size: { width: 150, height: 20 }, type: 'block', color: '#94a3b8' },
+    { position: { x: 2475, y: 250 }, size: { width: 150, height: 20 }, type: 'cloud', color: '#e0f2fe' },
 
-    // End platform with portal
-    { position: { x: 4500, y: 600 }, size: { width: 2000, height: 200 }, type: 'ground', color: '#475569' },
-    { position: { x: 5200, y: 450 }, size: { width: 150, height: 150 }, type: 'aurora', color: 'transparent', requiresCoop: true },
+    // Right zone - high platforms for crystals
+    { position: { x: 3100, y: 500 }, size: { width: 180, height: 20 }, type: 'block', color: '#94a3b8' },
+    { position: { x: 3350, y: 350 }, size: { width: 180, height: 20 }, type: 'block', color: '#94a3b8' },
+    { position: { x: 3650, y: 480 }, size: { width: 180, height: 20 }, type: 'leaf', color: '#86efac' },
+    { position: { x: 4000, y: 350 }, size: { width: 180, height: 20 }, type: 'crumbly', color: '#94a3b8', isFalling: false, fallTimer: 60, maxFallTimer: 60, respawnTimer: 0 },
 
-    // Walls
-    { position: { x: 6500, y: -200 }, size: { width: 100, height: 1000 }, type: 'ground', color: '#64748b' },
+    // Ice hazard zones
+    { position: { x: 1900, y: 600 }, size: { width: 200, height: 50 }, type: 'ice', color: '#93c5fd' },
+    { position: { x: 3400, y: 600 }, size: { width: 200, height: 50 }, type: 'ice', color: '#93c5fd' },
+
+    // Safe alcoves in walls
+    { position: { x: 1200, y: 500 }, size: { width: 80, height: 150 }, type: 'block', color: '#64748b' },
+    { position: { x: 4620, y: 500 }, size: { width: 80, height: 150 }, type: 'block', color: '#64748b' },
+
+    // End platform with victory portal
+    { position: { x: 5000, y: 600 }, size: { width: 2000, height: 200 }, type: 'ground', color: '#475569' },
+    { position: { x: 5700, y: 450 }, size: { width: 150, height: 150 }, type: 'aurora', color: 'transparent', requiresCoop: true },
+
+    // Arena walls
+    { position: { x: 1100, y: -200 }, size: { width: 100, height: 900 }, type: 'ground', color: '#64748b' },
+    { position: { x: 4700, y: -200 }, size: { width: 100, height: 900 }, type: 'ground', color: '#64748b' },
+    { position: { x: 7000, y: -200 }, size: { width: 100, height: 1000 }, type: 'ground', color: '#64748b' },
 ];
 
 export const getBossLevelCoins = (): Coin[] => [
-    { id: 401, position: { x: 1600, y: 400 }, size: 14, collected: false, baseY: 400, type: 'hot-chocolate' },
-    { id: 402, position: { x: 2300, y: 300 }, size: 14, collected: false, baseY: 300, type: 'hot-chocolate' },
-    { id: 403, position: { x: 3000, y: 400 }, size: 14, collected: false, baseY: 400, type: 'hot-chocolate' },
-    { id: 404, position: { x: 3700, y: 300 }, size: 14, collected: false, baseY: 300, type: 'hot-chocolate' },
-    { id: 405, position: { x: 2500, y: 470 }, size: 14, collected: false, baseY: 470, type: 'gold' },
-    { id: 406, position: { x: 5500, y: 500 }, size: 14, collected: false, baseY: 500, type: 'kanelbulle' },
-    { id: 407, position: { x: 5700, y: 500 }, size: 14, collected: false, baseY: 500, type: 'kanelbulle' },
-    { id: 408, position: { x: 5900, y: 500 }, size: 14, collected: false, baseY: 500, type: 'kanelbulle' },
+    { id: 401, position: { x: 1450, y: 450 }, size: 14, collected: false, baseY: 450, type: 'hot-chocolate' },
+    { id: 402, position: { x: 1700, y: 330 }, size: 14, collected: false, baseY: 330, type: 'hot-chocolate' },
+    { id: 403, position: { x: 1450, y: 210 }, size: 14, collected: false, baseY: 210, type: 'gold' },
+    { id: 404, position: { x: 2350, y: 470 }, size: 14, collected: false, baseY: 470, type: 'gold' },
+    { id: 405, position: { x: 2700, y: 470 }, size: 14, collected: false, baseY: 470, type: 'gold' },
+    { id: 406, position: { x: 2525, y: 350 }, size: 14, collected: false, baseY: 350, type: 'hot-chocolate' },
+    { id: 407, position: { x: 2525, y: 200 }, size: 14, collected: false, baseY: 200, type: 'gold' },
+    { id: 408, position: { x: 3150, y: 450 }, size: 14, collected: false, baseY: 450, type: 'gold' },
+    { id: 409, position: { x: 3400, y: 300 }, size: 14, collected: false, baseY: 300, type: 'hot-chocolate' },
+    { id: 410, position: { x: 3700, y: 430 }, size: 14, collected: false, baseY: 430, type: 'gold' },
+    { id: 411, position: { x: 4050, y: 300 }, size: 14, collected: false, baseY: 300, type: 'gold' },
+    { id: 412, position: { x: 5500, y: 500 }, size: 14, collected: false, baseY: 500, type: 'kanelbulle' },
+    { id: 413, position: { x: 5700, y: 500 }, size: 14, collected: false, baseY: 500, type: 'kanelbulle' },
+    { id: 414, position: { x: 5900, y: 500 }, size: 14, collected: false, baseY: 500, type: 'kanelbulle' },
+    { id: 415, position: { x: 6100, y: 500 }, size: 14, collected: false, baseY: 500, type: 'hot-chocolate' },
 ];
 
 export const getBossLevelEnemies = (): Enemy[] => [
-    // THE BOSS: Aurora Guardian - simplified for better visuals
     {
         id: 999,
-        position: { x: 3800, y: 400 },
+        position: { x: 2800, y: 400 },
         size: { width: 150, height: 200 },
         type: 'boss',
-        color: '#94a3b8', // Softer slate color
-        health: 8, // Reduced health for easier fight
-        maxHealth: 8,
+        color: '#94a3b8',
+        health: 12,
+        maxHealth: 12,
         phase: 1,
         attackTimer: 0,
-        originalX: 3800,
-        patrolDistance: 400, // Smaller patrol area
-        speed: 1.2, // Slower movement
-        direction: 1
+        attackCooldown: 0,
+        isAttacking: false,
+        attackType: 'slam',
+        isInvincible: false,
+        shieldActive: false,
+        originalX: 2800,
+        patrolDistance: 500,
+        speed: 1.5,
+        direction: 1,
+        isDashing: false,
+        hitFlash: 0
     }
 ];
 
@@ -469,8 +500,9 @@ export const getBossLevelCheckpoints = (): Checkpoint[] => [
 ];
 
 export const getBossLevelPowerUps = (): import('./types').PowerUp[] => [
-    { id: 1, position: { x: 1600, y: 420 }, size: { width: 30, height: 30 }, type: 'shield', collected: false, baseY: 420, duration: 300 },
-    { id: 2, position: { x: 2300, y: 320 }, size: { width: 30, height: 30 }, type: 'speed', collected: false, baseY: 320, duration: 240 },
-    { id: 3, position: { x: 3000, y: 420 }, size: { width: 30, height: 30 }, type: 'double_jump', collected: false, baseY: 420, duration: 360 },
-    { id: 4, position: { x: 3700, y: 320 }, size: { width: 30, height: 30 }, type: 'star', collected: false, baseY: 320, duration: 180 },
+    { id: 1, position: { x: 1240, y: 470 }, size: { width: 30, height: 30 }, type: 'shield', collected: false, baseY: 470, duration: 360 },
+    { id: 2, position: { x: 4660, y: 470 }, size: { width: 30, height: 30 }, type: 'shield', collected: false, baseY: 470, duration: 360 },
+    { id: 3, position: { x: 2475, y: 370 }, size: { width: 30, height: 30 }, type: 'double_jump', collected: false, baseY: 370, duration: 420 },
+    { id: 4, position: { x: 2525, y: 220 }, size: { width: 30, height: 30 }, type: 'star', collected: false, baseY: 220, duration: 240 },
+    { id: 5, position: { x: 3400, y: 320 }, size: { width: 30, height: 30 }, type: 'speed', collected: false, baseY: 320, duration: 300 },
 ];

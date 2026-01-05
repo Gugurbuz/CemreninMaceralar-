@@ -82,17 +82,23 @@ export interface Enemy {
   size: Size;
   type: 'slime' | 'snowman' | 'yeti' | 'bird' | 'boss';
   color: string;
-  health?: number; // For boss
-  maxHealth?: number; // For boss
-  phase?: number; // For boss phases
-  attackTimer?: number; // For boss attacks
-  // Patrol logic
+  health?: number;
+  maxHealth?: number;
+  phase?: number;
+  attackTimer?: number;
+  attackCooldown?: number;
+  isAttacking?: boolean;
+  attackType?: 'slam' | 'dash' | 'projectile' | 'summon';
+  isInvincible?: boolean;
+  shieldActive?: boolean;
   originalX?: number;
   patrolDistance?: number;
   speed?: number;
   direction?: 1 | -1;
-  // Bird logic
   originalY?: number;
+  dashTarget?: Vector2;
+  isDashing?: boolean;
+  hitFlash?: number;
 }
 
 export interface Checkpoint {
@@ -134,6 +140,24 @@ export interface EffectParticle {
   type: 'dust' | 'splash';
 }
 
+export interface Projectile {
+  id: number;
+  position: Vector2;
+  velocity: Vector2;
+  size: number;
+  type: 'ice_ball' | 'shockwave';
+  damage: number;
+  life: number;
+}
+
+export interface AuroraCrystal {
+  id: number;
+  position: Vector2;
+  size: Size;
+  collected: boolean;
+  glowPhase: number;
+}
+
 export interface GameConfig {
     mode: 'solo' | 'multi';
     character: 'cemre' | 'baba' | null;
@@ -142,16 +166,18 @@ export interface GameConfig {
 }
 
 export interface GameState {
-  level: number; // 1, 2, 3, or 4
+  level: number;
   gameMode: 'solo' | 'multi';
-  runConfig: GameConfig; // Store initial config for restarts
+  runConfig: GameConfig;
   players: Player[];
   platforms: Platform[];
   coins: Coin[];
   powerUps: PowerUp[];
   enemies: Enemy[];
   checkpoints: Checkpoint[];
-  floatingTexts: FloatingText[]; // New: Popups
+  floatingTexts: FloatingText[];
+  projectiles: Projectile[];
+  auroraCrystals: AuroraCrystal[];
   camera: Vector2;
   status: 'menu' | 'playing' | 'won' | 'gameover' | 'transition' | 'paused';
   score: number;
@@ -159,16 +185,16 @@ export interface GameState {
   activeRespawnPoint: Vector2;
   windActive: boolean;
   canTeleport: boolean;
-  screenShake: number; // New: Shake intensity
-  coinsCollected: number; // Track total coins
-  enemiesDefeated: number; // Track enemies defeated
-  deathCount: number; // Track deaths
-  perfectJumps: number; // Track perfect jumps
-  powerUpsUsed: number; // Track power-ups used
-
-  // Cinematic & Logic
-  portalHoldTimer: number; // For co-op win
+  screenShake: number;
+  coinsCollected: number;
+  enemiesDefeated: number;
+  deathCount: number;
+  perfectJumps: number;
+  powerUpsUsed: number;
+  portalHoldTimer: number;
   cinematicMode: 'none' | 'aurora_suction' | 'nectar_rain';
+  bossPhaseTransition: boolean;
+  crystalsCollected: number;
 }
 
 export interface InputState {

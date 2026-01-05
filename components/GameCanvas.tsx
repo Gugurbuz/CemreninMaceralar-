@@ -74,7 +74,7 @@ export const GameCanvas: React.FC = () => {
   const gameState = useRef<GameState>({
     level: 1,
     gameMode: 'multi',
-    runConfig: { mode: 'multi', character: null, lives: 3, level: 1 }, // Default config
+    runConfig: { mode: 'multi', character: null, lives: 3, level: 1 },
     players: getInitialPlayers(3),
     platforms: getWinterPlatforms(),
     coins: getWinterCoins(),
@@ -82,6 +82,8 @@ export const GameCanvas: React.FC = () => {
     enemies: getWinterEnemies(),
     checkpoints: getWinterCheckpoints(),
     floatingTexts: [],
+    projectiles: [],
+    auroraCrystals: [],
     camera: { x: 0, y: 0 },
     status: 'menu',
     score: 0,
@@ -96,7 +98,9 @@ export const GameCanvas: React.FC = () => {
     enemiesDefeated: 0,
     deathCount: 0,
     perfectJumps: 0,
-    powerUpsUsed: 0
+    powerUpsUsed: 0,
+    bossPhaseTransition: false,
+    crystalsCollected: 0
   });
 
   const particles = useRef<Particle[]>([]);
@@ -215,7 +219,11 @@ export const GameCanvas: React.FC = () => {
           gameState.current.enemies = getBossLevelEnemies();
           gameState.current.checkpoints = getBossLevelCheckpoints();
       }
-      
+
+      gameState.current.projectiles = [];
+      gameState.current.auroraCrystals = [];
+      gameState.current.bossPhaseTransition = false;
+      gameState.current.crystalsCollected = 0;
       gameState.current.camera = { x: 0, y: 0 };
       
       // Init Particles

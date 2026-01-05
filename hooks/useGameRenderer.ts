@@ -895,29 +895,55 @@ export const useGameRenderer = (
                 const pupilX = facingRight ? eyeX + 1.5 : eyeX - 1.5;
                 ctx.beginPath(); ctx.arc(pupilX, y + 8, 2, 0, Math.PI*2); ctx.fill();
             } else if (enemy.type === 'boss') {
-                // BOSS RENDERING - Simplified and easier on eyes
                 const pulse = Math.sin(gameState.current.globalTime * 0.15) * 3;
+                const hitFlashActive = enemy.hitFlash && enemy.hitFlash > 0;
 
-                // Main body - soft gradient instead of harsh crystalline
+                ctx.save();
+                if (hitFlashActive) {
+                    ctx.globalAlpha = 0.7;
+                }
+
+                let phaseColor1 = '#94a3b8';
+                let phaseColor2 = '#64748b';
+                if (enemy.phase === 2) {
+                    phaseColor1 = '#f59e0b';
+                    phaseColor2 = '#d97706';
+                } else if (enemy.phase === 3) {
+                    phaseColor1 = '#a855f7';
+                    phaseColor2 = '#7c3aed';
+                }
+
                 const bodyGradient = ctx.createLinearGradient(x, y, x, y + enemy.size.height);
-                bodyGradient.addColorStop(0, '#94a3b8'); // Soft slate
-                bodyGradient.addColorStop(1, '#64748b'); // Darker slate
+                bodyGradient.addColorStop(0, phaseColor1);
+                bodyGradient.addColorStop(1, phaseColor2);
                 ctx.fillStyle = bodyGradient;
                 ctx.fillRect(x, y, enemy.size.width, enemy.size.height);
 
-                // Soft ice effect - much more subtle
+                if (enemy.shieldActive) {
+                    ctx.strokeStyle = '#fbbf24';
+                    ctx.lineWidth = 4;
+                    const shieldPulse = Math.sin(gameState.current.globalTime * 0.2) * 5;
+                    ctx.beginPath();
+                    ctx.arc(x + enemy.size.width / 2, y + enemy.size.height / 2, 100 + shieldPulse, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    ctx.strokeStyle = 'rgba(251, 191, 36, 0.3)';
+                    ctx.lineWidth = 8;
+                    ctx.beginPath();
+                    ctx.arc(x + enemy.size.width / 2, y + enemy.size.height / 2, 95 + shieldPulse, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
                 ctx.fillRect(x + 10, y + 10, 30, 40);
                 ctx.fillRect(x + enemy.size.width - 40, y + 20, 30, 35);
 
-                // Face area - softer white
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
                 ctx.beginPath();
                 ctx.arc(x + 75, y + 75, 40, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Eyes - softer colors, less aggressive
-                const eyeColor = enemy.phase === 2 ? '#f59e0b' : '#60a5fa'; // Orange or soft blue
+                const eyeColor = enemy.phase === 3 ? '#a855f7' : (enemy.phase === 2 ? '#f59e0b' : '#60a5fa');
                 ctx.fillStyle = eyeColor;
                 ctx.beginPath();
                 ctx.arc(x + 55, y + 70, 6 + pulse, 0, Math.PI*2);
@@ -926,7 +952,6 @@ export const useGameRenderer = (
                 ctx.arc(x + 95, y + 70, 6 + pulse, 0, Math.PI*2);
                 ctx.fill();
 
-                // Pupils
                 ctx.fillStyle = '#1e293b';
                 ctx.beginPath();
                 ctx.arc(x + 55, y + 70, 3, 0, Math.PI*2);
@@ -935,17 +960,18 @@ export const useGameRenderer = (
                 ctx.arc(x + 95, y + 70, 3, 0, Math.PI*2);
                 ctx.fill();
 
-                // Mouth - simplified
-                ctx.strokeStyle = enemy.phase === 2 ? '#f59e0b' : '#64748b';
+                ctx.strokeStyle = eyeColor;
                 ctx.lineWidth = 3;
                 ctx.beginPath();
-                if (enemy.phase === 2) {
+                if (enemy.phase >= 2) {
                     ctx.moveTo(x + 50, y + 95);
                     ctx.lineTo(x + 100, y + 95);
                 } else {
                     ctx.arc(x + 75, y + 90, 20, 0.2, Math.PI - 0.2);
                 }
                 ctx.stroke();
+
+                ctx.restore();
 
                 // Health bar - softer colors
                 const healthPct = (enemy.health || 1) / (enemy.maxHealth || 1);
@@ -1018,7 +1044,82 @@ export const useGameRenderer = (
                         powerUp.type === 'magnet' ? '🧲' : '⭐';
             ctx.fillText(icon, px, py);
         });
-    
+
+        gameState.current.projectiles.forEach(proj => {
+            const px = proj.position.x - gameState.current.camera.x;
+            const py = proj.position.y;
+
+            if (proj.type === 'ice_ball') {
+                ctx.save();
+                const glow = ctx.createRadialGradient(px, py, 0, px, py, proj.size);
+                glow.addColorStop(0, 'rgba(96, 165, 250, 0.8)');
+                glow.addColorStop(1, 'rgba(96, 165, 250, 0)');
+                ctx.fillStyle = glow;
+                ctx.fillRect(px - proj.size, py - proj.size, proj.size * 2, proj.size * 2);
+                ctx.restore();
+
+                ctx.fillStyle = '#60a5fa';
+                ctx.beginPath();
+                ctx.arc(px, py, proj.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.beginPath();
+                ctx.arc(px - 3, py - 3, proj.size / 4, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (proj.type === 'shockwave') {
+                const alpha = proj.life / 60;
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.strokeStyle = '#fbbf24';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                const waveWidth = (60 - proj.life) * 3;
+                ctx.arc(px, py, waveWidth, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            }
+        });
+
+        gameState.current.auroraCrystals.forEach(crystal => {
+            if (crystal.collected) return;
+
+            const cx = crystal.position.x - gameState.current.camera.x;
+            const cy = crystal.position.y;
+            const glow = Math.sin(crystal.glowPhase) * 0.3 + 0.7;
+
+            ctx.save();
+            ctx.globalAlpha = 0.4 * glow;
+            const auraGradient = ctx.createRadialGradient(cx + 15, cy + 20, 0, cx + 15, cy + 20, 50);
+            auraGradient.addColorStop(0, '#a855f7');
+            auraGradient.addColorStop(1, 'rgba(168, 85, 247, 0)');
+            ctx.fillStyle = auraGradient;
+            ctx.fillRect(cx - 35, cy - 30, 100, 100);
+            ctx.restore();
+
+            const gradient = ctx.createLinearGradient(cx, cy, cx, cy + crystal.size.height);
+            gradient.addColorStop(0, '#c084fc');
+            gradient.addColorStop(1, '#a855f7');
+            ctx.fillStyle = gradient;
+
+            ctx.beginPath();
+            ctx.moveTo(cx + 15, cy);
+            ctx.lineTo(cx + 25, cy + 15);
+            ctx.lineTo(cx + 15, cy + 40);
+            ctx.lineTo(cx + 5, cy + 15);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.beginPath();
+            ctx.moveTo(cx + 15, cy + 5);
+            ctx.lineTo(cx + 20, cy + 15);
+            ctx.lineTo(cx + 15, cy + 25);
+            ctx.lineTo(cx + 10, cy + 15);
+            ctx.closePath();
+            ctx.fill();
+        });
+
         gameState.current.players.forEach(p => {
             if (!p.isDead) drawPlayer(ctx, p);
         });

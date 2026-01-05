@@ -7,6 +7,7 @@ import {
     LEVEL_1_WIDTH, LEVEL_2_WIDTH, LEVEL_4_WIDTH, COYOTE_TIME, JUMP_BUFFER, INITIAL_RESPAWN_POINT
 } from '../constants';
 import { soundManager } from '../utils/SoundManager';
+import { updateBossAI, handleBossHit, updateProjectiles, updateAuroraCrystals } from '../lib/bossAI';
 
 interface PhysicsProps {
     gameState: React.MutableRefObject<GameState>;
@@ -474,11 +475,13 @@ export const useGamePhysics = ({
     
         // Enemy Logic Updates (Patrols)
         gameState.current.enemies.forEach(enemy => {
-            if ((enemy.type === 'yeti' || enemy.type === 'slime' || enemy.type === 'snowman') && enemy.originalX && enemy.patrolDistance) {
+            if (enemy.type === 'boss') {
+                updateBossAI(enemy, gameState.current, addFloatingText);
+            } else if ((enemy.type === 'yeti' || enemy.type === 'slime' || enemy.type === 'snowman') && enemy.originalX && enemy.patrolDistance) {
                 enemy.position.x += (enemy.speed || 1) * (enemy.direction || 1);
                 if (enemy.position.x > enemy.originalX + enemy.patrolDistance) enemy.direction = -1;
                 if (enemy.position.x < enemy.originalX) enemy.direction = 1;
-            } 
+            }
             else if (enemy.type === 'bird' && enemy.originalX && enemy.originalY) {
                 enemy.position.x += (enemy.speed || 1) * (enemy.direction || 1);
                 enemy.position.y = enemy.originalY + Math.sin(time * 0.05) * 50;
@@ -487,6 +490,43 @@ export const useGamePhysics = ({
                 }
             }
         });
+
+        updateProjectiles(gameState.current);
+        updateAuroraCrystals(gameState.current);
+
+        for (let i = gameState.current.projectiles.length - 1; i >= 0; i--) {
+            const proj = gameState.current.projectiles[i];
+            gameState.current.players.forEach(p => {
+                if (p.isDead || p.invincibleTimer > 0) return;
+                if (isColliding(
+                    {x: p.position.x, y: p.position.y, w: p.size.width, h: p.size.height},
+                    {x: proj.position.x, y: proj.position.y, w: proj.size, h: proj.size}
+                )) {
+                    handlePlayerDamage(p);
+                    gameState.current.projectiles.splice(i, 1);
+                }
+            });
+        }
+
+        for (let i = gameState.current.auroraCrystals.length - 1; i >= 0; i--) {
+            const crystal = gameState.current.auroraCrystals[i];
+            if (crystal.collected) continue;
+
+            gameState.current.players.forEach(p => {
+                if (p.isDead) return;
+                if (isColliding(
+                    {x: p.position.x, y: p.position.y, w: p.size.width, h: p.size.height},
+                    {x: crystal.position.x, y: crystal.position.y, w: crystal.size.width, h: crystal.size.height}
+                )) {
+                    crystal.collected = true;
+                    gameState.current.crystalsCollected++;
+                    gameState.current.score += 50;
+                    soundManager.playCoin();
+                    addFloatingText(crystal.position.x, crystal.position.y - 20, `Kristal ${gameState.current.crystalsCollected}/3`, '#a855f7');
+                    gameState.current.auroraCrystals.splice(i, 1);
+                }
+            });
+        }
     
         // Teleport Logic
         const players = gameState.current.players;
@@ -828,45 +868,34 @@ export const useGamePhysics = ({
                      const isFalling = p.velocity.y > 0;
 
                      if (enemy.type === 'boss') {
-                         // BOSS FIGHT LOGIC
                          if (isFalling && isAbove) {
-                             // Hit boss
-                             p.velocity.y = -12; // Big bounce
-                             enemy.health = (enemy.health || 1) - 1;
-                             gameState.current.screenShake = 10;
+                             p.velocity.y = -12;
                              soundManager.playDamage();
                              addFloatingText(enemy.position.x + 50, enemy.position.y - 20, `-1 ❤️`, '#ef4444');
 
-                             if (enemy.health <= 0) {
-                                 // Boss defeated!
+                             const defeated = handleBossHit(enemy, 1, gameState.current, addFloatingText);
+
+                             if (defeated) {
                                  gameState.current.enemiesDefeated++;
-                                 gameState.current.score += 100;
+                                 gameState.current.score += 200;
                                  gameState.current.enemies.splice(i, 1);
                                  soundManager.playWin();
                                  addFloatingText(enemy.position.x + 50, enemy.position.y, "YENILDI!", "#22c55e");
-                                 gameState.current.screenShake = 30;
-                                 // Spawn reward coins
-                                 for (let j = 0; j < 10; j++) {
+                                 gameState.current.screenShake = 35;
+
+                                 for (let j = 0; j < 15; j++) {
                                      gameState.current.coins.push({
                                          id: 9000 + j,
-                                         position: { x: enemy.position.x + Math.random() * 150, y: enemy.position.y - 100 },
+                                         position: { x: enemy.position.x + Math.random() * 150, y: enemy.position.y - 100 + Math.random() * 50 },
                                          size: 14,
                                          collected: false,
                                          baseY: enemy.position.y - 100,
-                                         type: 'gold',
+                                         type: Math.random() > 0.5 ? 'gold' : 'kanelbulle',
                                          isNectarDrop: true
                                      });
                                  }
-                             } else {
-                                 // Boss takes damage, change phase
-                                 if (enemy.health <= (enemy.maxHealth || 20) / 2 && enemy.phase === 1) {
-                                     enemy.phase = 2;
-                                     enemy.speed = (enemy.speed || 2) * 1.5;
-                                     addFloatingText(enemy.position.x + 50, enemy.position.y - 40, "ÖFKELENDİ!", "#ef4444");
-                                 }
                              }
-                         } else {
-                             // Boss hits player
+                         } else if (!enemy.isDashing) {
                              handlePlayerDamage(p);
                          }
                      } else {
