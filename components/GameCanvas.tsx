@@ -54,6 +54,7 @@ export const GameCanvas: React.FC = () => {
   });
 
   const [isMuted, setIsMuted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [dialogText, setDialogText] = useState<{name:string, text:string}[]>([]);
   const dialogTimeoutRef = useRef<number | null>(null);
@@ -272,6 +273,28 @@ export const GameCanvas: React.FC = () => {
     soundManager.setMute(newState);
   };
 
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+        setIsFullscreen(true);
+      } else {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    } catch (err) {
+      console.error('Fullscreen error:', err);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   const togglePause = useCallback(() => {
       const now = Date.now();
       if (now - lastPauseToggle.current < 300) return; 
@@ -327,7 +350,6 @@ export const GameCanvas: React.FC = () => {
   // Called internally or by restart button
   const initializeGame = (level: number) => {
     soundManager.resume();
-    soundManager.startBGM();
 
     gameState.current.score = 0;
     
@@ -496,7 +518,7 @@ export const GameCanvas: React.FC = () => {
                              <div className="bg-black/40 text-white px-3 py-1 rounded-lg font-mono text-lg font-bold border border-white/10">
                                  ⏱️ {formatTime(hudState.time)}
                              </div>
-                             <button 
+                             <button
                                 onClick={toggleMute}
                                 className="bg-black/40 hover:bg-black/60 text-white rounded-lg p-2 transition-colors border border-white/10"
                                 aria-label="Sesi Aç/Kapat"
@@ -504,7 +526,15 @@ export const GameCanvas: React.FC = () => {
                              >
                                 {isMuted ? '🔇' : '🔊'}
                              </button>
-                             <button 
+                             <button
+                                onClick={toggleFullscreen}
+                                className="bg-black/40 hover:bg-black/60 text-white rounded-lg p-2 transition-colors border border-white/10"
+                                aria-label="Tam Ekran"
+                                title="Tam Ekran"
+                             >
+                                {isFullscreen ? '🗗' : '⛶'}
+                             </button>
+                             <button
                                 onClick={togglePause}
                                 className="bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg w-10 h-10 font-bold shadow-md"
                                 aria-label="Duraklat"

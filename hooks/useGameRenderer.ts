@@ -513,18 +513,32 @@ export const useGameRenderer = (
               ctx.fillRect(plat.position.x, plat.position.y, plat.size.width, 10);
 
           } else if (plat.type === 'leaf') {
-               ctx.fillStyle = '#22c55e';
                ctx.beginPath();
                ctx.ellipse(plat.position.x + plat.size.width/2, plat.position.y + plat.size.height/2, plat.size.width/2, plat.size.height, 0, 0, Math.PI*2);
+
+               // Fill
+               ctx.fillStyle = '#22c55e';
                ctx.fill();
+
+               // Outline for visibility
+               ctx.strokeStyle = 'rgba(34, 139, 34, 0.8)';
+               ctx.lineWidth = 2;
+               ctx.stroke();
           } else if (plat.type === 'cloud') {
-               // Draw fluffy cloud platform
-               ctx.fillStyle = 'white';
+               // Draw fluffy cloud platform with outline for visibility
                const r = plat.size.height / 2;
+
+               // Shadow/outline for visibility
+               ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
+               ctx.lineWidth = 3;
                ctx.beginPath();
                ctx.arc(plat.position.x + r, plat.position.y + r, r, Math.PI * 0.5, Math.PI * 1.5);
                ctx.arc(plat.position.x + plat.size.width - r, plat.position.y + r, r, Math.PI * 1.5, Math.PI * 0.5);
                ctx.closePath();
+               ctx.stroke();
+
+               // White fill
+               ctx.fillStyle = 'white';
                ctx.fill();
 
           } else if (plat.type === 'mushroom') {
