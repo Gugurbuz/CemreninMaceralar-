@@ -4,7 +4,8 @@ import { GameState, InputState, Player, Platform, Particle, EffectParticle, Enem
 import {
     GRAVITY, TERMINAL_VELOCITY, FRICTION, ICE_FRICTION, WIND_FORCE,
     CANVAS_WIDTH, CANVAS_HEIGHT, HOT_CHOCOLATE_DURATION,
-    LEVEL_1_WIDTH, LEVEL_2_WIDTH, LEVEL_4_WIDTH, COYOTE_TIME, JUMP_BUFFER, INITIAL_RESPAWN_POINT
+    LEVEL_1_WIDTH, LEVEL_2_WIDTH, LEVEL_4_WIDTH, COYOTE_TIME, JUMP_BUFFER, INITIAL_RESPAWN_POINT,
+    getWinterEnemies, getButterflyEnemies, getFruitParadiseEnemies, getBossLevelEnemies
 } from '../constants';
 import { soundManager } from '../utils/SoundManager';
 import { updateBossAI, handleBossHit, updateProjectiles, updateAuroraCrystals } from '../lib/bossAI';
@@ -126,6 +127,19 @@ export const useGamePhysics = ({
             p.position.x = gameState.current.activeRespawnPoint.x;
             p.position.y = gameState.current.activeRespawnPoint.y;
             p.velocity = {x: 0, y: 0};
+
+            const level = gameState.current.level;
+            if (level === 1) {
+                gameState.current.enemies = getWinterEnemies();
+            } else if (level === 2) {
+                gameState.current.enemies = getButterflyEnemies();
+            } else if (level === 3) {
+                gameState.current.enemies = getFruitParadiseEnemies();
+            } else if (level === 4) {
+                gameState.current.enemies = getBossLevelEnemies();
+                gameState.current.projectiles = [];
+                gameState.current.auroraCrystals = [];
+            }
         } else {
             p.isDead = true;
             p.velocity = {x: 0, y: 0};
