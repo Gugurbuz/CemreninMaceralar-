@@ -417,9 +417,8 @@ export const getBossLevelPlatforms = (): Platform[] => [
     // Temple entrance
     { position: { x: -200, y: 600 }, size: { width: 1000, height: 200 }, type: 'ground', color: '#475569' },
 
-    // Preparation zone with pillars
+    // Preparation zone platform
     { position: { x: 900, y: 550 }, size: { width: 150, height: 20 }, type: 'block', color: '#94a3b8' },
-    { position: { x: 900, y: 300 }, size: { width: 30, height: 250 }, type: 'block', color: '#64748b' },
 
     // Main arena floor - expanded
     { position: { x: 1200, y: 650 }, size: { width: 3500, height: 150 }, type: 'ground', color: '#64748b' },
