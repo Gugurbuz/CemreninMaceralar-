@@ -501,7 +501,7 @@ export const getBossLevelEnemies = (): Enemy[] => [
 ];
 
 export const getBossLevelCheckpoints = (): Checkpoint[] => [
-    { id: 401, position: { x: 800, y: 550 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 401, position: { x: 950, y: 500 }, size: { width: 40, height: 60 }, triggered: false },
     { id: 402, position: { x: 4600, y: 550 }, size: { width: 40, height: 60 }, triggered: false },
 ];
 
