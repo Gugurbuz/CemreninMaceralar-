@@ -32,6 +32,14 @@ export class SoundManager {
        {f: 523.25, d: 0.5}, {f: 587.33, d: 0.5}, {f: 659.25, d: 0.5}, {f: 783.99, d: 1.5}, // C D E G
     ];
 
+    // Level 4: Boss Battle - Epic, dramatic melody (D minor)
+    private level4Melody = [
+       {f: 293.66, d: 1}, {f: 329.63, d: 0.5}, {f: 349.23, d: 0.5}, {f: 392.00, d: 1}, // D E F G
+       {f: 440.00, d: 0.5}, {f: 392.00, d: 0.5}, {f: 349.23, d: 1}, {f: 329.63, d: 1}, // A G F E
+       {f: 293.66, d: 0.5}, {f: 349.23, d: 0.5}, {f: 440.00, d: 1}, {f: 392.00, d: 1.5}, // D F A G
+       {f: 349.23, d: 0.5}, {f: 293.66, d: 0.5}, {f: 261.63, d: 1}, {f: 293.66, d: 2}, // F D C D
+    ];
+
     private melody = this.level1Melody;
     private noteTime: number = 0;
     private tempo: number = 140; // BPM
@@ -182,6 +190,9 @@ export class SoundManager {
         } else if (level === 3) {
             this.melody = this.level3Melody;
             this.tempo = 160; // Upbeat and tropical
+        } else if (level === 4) {
+            this.melody = this.level4Melody;
+            this.tempo = 100; // Epic boss battle
         } else {
             this.melody = this.level1Melody;
             this.tempo = 140;

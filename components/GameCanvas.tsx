@@ -150,10 +150,12 @@ export const GameCanvas: React.FC = () => {
       };
   }, []);
 
-  // Stop music on game end
+  // Music control based on game status
   useEffect(() => {
       if (gameStatus === 'won' || gameStatus === 'gameover') {
           soundManager.stopBGM();
+      } else if (gameStatus === 'playing') {
+          soundManager.startBGM(gameState.current.level);
       }
   }, [gameStatus]);
 
@@ -233,12 +235,14 @@ export const GameCanvas: React.FC = () => {
         particles.current.push({
             x: Math.random() * CANVAS_WIDTH,
             y: Math.random() * CANVAS_HEIGHT,
-            size: Math.random() * 3 + 2, 
+            size: Math.random() * 3 + 2,
             speed: Math.random() * 2 + 1,
             color: level === 1 ? '#fff' : `hsl(${Math.random()*360}, 80%, 70%)`,
             angle: Math.random() * Math.PI * 2
         });
       }
+
+      soundManager.startBGM(level);
   }, [renderStaticBackground]);
 
   const { updatePhysics } = useGamePhysics({
