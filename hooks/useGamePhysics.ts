@@ -980,11 +980,10 @@ export const useGamePhysics = ({
                          callbacks.loadLevel(2);
                          gameState.current.status = 'playing';
                          callbacks.setGameStatus('playing');
-                         callbacks.setDialogText([
+                         callbacks.triggerDialog([
                             {name: 'Cemre', text: 'Vay canına! Burası çok güzel!'},
                             {name: 'Baba', text: 'Kelebek Vadisi... Dikkat et, burası daha sıcak.'}
                          ]);
-                         callbacks.setShowDialog(true);
                      }, 2000);
                  } else if (gameState.current.level === 2) {
                      // Transition to Level 3
@@ -997,12 +996,11 @@ export const useGamePhysics = ({
                          callbacks.loadLevel(3);
                          gameState.current.status = 'playing';
                          callbacks.setGameStatus('playing');
-                         callbacks.setDialogText([
+                         callbacks.triggerDialog([
                             {name: 'Cemre', text: 'Ooooh! Meyveler!'},
                             {name: 'Baba', text: 'Burası Meyve Cenneti! Hiç canavar yok, sadece eğlence!'},
                             {name: 'Cemre', text: 'Yaşasın! Hepsini toplayalım!'}
                          ]);
-                         callbacks.setShowDialog(true);
                      }, 2000);
                  } else if (gameState.current.level === 3) {
                      // Transition to Level 4 (Boss)
@@ -1015,11 +1013,10 @@ export const useGamePhysics = ({
                          callbacks.loadLevel(4);
                          gameState.current.status = 'playing';
                          callbacks.setGameStatus('playing');
-                         callbacks.setDialogText([
+                         callbacks.triggerDialog([
                             {name: 'Baba', text: 'Dikkatli ol! Önümüzde bir şey var...'},
                             {name: 'Cemre', text: 'Ne kadar büyük! Yenmek için işbirliği yapmalıyız!'}
                          ]);
-                         callbacks.setShowDialog(true);
                      }, 2000);
                  } else {
                      // Win Game (End of Level 4)

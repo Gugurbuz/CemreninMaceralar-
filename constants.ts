@@ -181,21 +181,29 @@ export const getButterflyPlatforms = (): Platform[] => [
   { position: { x: 2500, y: 550 }, size: { width: 100, height: 80 }, type: 'mushroom', color: '#fca5a5', deformation: 0 },
   { position: { x: 2800, y: 450 }, size: { width: 100, height: 80 }, type: 'mushroom', color: '#fca5a5', deformation: 0 },
   { position: { x: 3200, y: 400 }, size: { width: 400, height: 40 }, type: 'ground', color: '#86efac' },
-  { position: { x: 3800, y: 300 }, size: { width: 100, height: 20 }, type: 'crumbly', color: '#fde047', fallTimer: 60, maxFallTimer: 60, respawnTimer: 0 },
+  { position: { x: 3650, y: 360 }, size: { width: 120, height: 20 }, type: 'leaf', color: '#22c55e' },
+  { position: { x: 3800, y: 320 }, size: { width: 100, height: 20 }, type: 'crumbly', color: '#fde047', fallTimer: 60, maxFallTimer: 60, respawnTimer: 0 },
+  { position: { x: 3950, y: 400 }, size: { width: 120, height: 20 }, type: 'leaf', color: '#22c55e' },
   { position: { x: 4200, y: 600 }, size: { width: 1000, height: 200 }, type: 'ground', color: '#86efac' },
+  { position: { x: 5250, y: 550 }, size: { width: 150, height: 20 }, type: 'leaf', color: '#22c55e' },
   { position: { x: 5500, y: 500 }, size: { width: 200, height: 20 }, type: 'leaf', color: '#22c55e' },
   { position: { x: 6000, y: 600 }, size: { width: 1500, height: 200 }, type: 'ground', color: '#86efac' },
   { position: { x: 7500, y: 550 }, size: { width: 500, height: 200 }, type: 'ground', color: '#86efac' },
   
   // --- ACT 2 EXTENSION: THE HIVE CLIMB ---
+  { position: { x: 8050, y: 500 }, size: { width: 120, height: 20 }, type: 'leaf', color: '#22c55e' },
   { position: { x: 8200, y: 450 }, size: { width: 100, height: 80 }, type: 'mushroom', color: '#fca5a5', deformation: 0 },
+  { position: { x: 8350, y: 370 }, size: { width: 120, height: 20 }, type: 'leaf', color: '#22c55e' },
   { position: { x: 8500, y: 300 }, size: { width: 100, height: 80 }, type: 'mushroom', color: '#fca5a5', deformation: 0 },
+  { position: { x: 8650, y: 220 }, size: { width: 120, height: 20 }, type: 'leaf', color: '#22c55e' },
   { position: { x: 8800, y: 150 }, size: { width: 300, height: 20 }, type: 'leaf', color: '#22c55e' },
-  
+
   // High Hive Platform
-  { position: { x: 9200, y: 150 }, size: { width: 100, height: 20 }, type: 'block', color: '#eab308' }, // Honey block
+  { position: { x: 9100, y: 230 }, size: { width: 120, height: 20 }, type: 'cloud', color: '#e0f2fe' },
+  { position: { x: 9200, y: 150 }, size: { width: 100, height: 20 }, type: 'block', color: '#eab308' },
   { position: { x: 9300, y: 150 }, size: { width: 100, height: 20 }, type: 'block', color: '#eab308' },
   { position: { x: 9500, y: 300 }, size: { width: 100, height: 20 }, type: 'block', color: '#eab308' },
+  { position: { x: 9650, y: 450 }, size: { width: 120, height: 20 }, type: 'leaf', color: '#22c55e' },
   
   // Long Drop Safe Zone
   { position: { x: 9800, y: 600 }, size: { width: 800, height: 200 }, type: 'ground', color: '#86efac' },
@@ -446,7 +454,6 @@ export const getBossLevelPlatforms = (): Platform[] => [
     { position: { x: 5700, y: 450 }, size: { width: 150, height: 150 }, type: 'aurora', color: 'transparent', requiresCoop: true },
 
     // Arena walls
-    { position: { x: 1100, y: -200 }, size: { width: 100, height: 900 }, type: 'ground', color: '#64748b' },
     { position: { x: 4700, y: -200 }, size: { width: 100, height: 900 }, type: 'ground', color: '#64748b' },
     { position: { x: 7000, y: -200 }, size: { width: 100, height: 1000 }, type: 'ground', color: '#64748b' },
 ];

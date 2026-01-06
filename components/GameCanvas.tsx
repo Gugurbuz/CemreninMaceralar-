@@ -248,7 +248,7 @@ export const GameCanvas: React.FC = () => {
       effectParticles,
       callbacks: {
           setGameStatus,
-          setShowDialog,
+          triggerDialog,
           setDialogText,
           loadLevel,
           setCurrentScore: () => {}, // Score handled by ref now
