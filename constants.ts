@@ -453,7 +453,6 @@ export const getBossLevelPlatforms = (): Platform[] => [
     { position: { x: 5700, y: 450 }, size: { width: 150, height: 150 }, type: 'aurora', color: 'transparent', requiresCoop: true },
 
     // Arena walls
-    { position: { x: 4700, y: -200 }, size: { width: 100, height: 900 }, type: 'ground', color: '#64748b' },
     { position: { x: 7000, y: -200 }, size: { width: 100, height: 1000 }, type: 'ground', color: '#64748b' },
 ];
 
