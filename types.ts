@@ -41,7 +41,7 @@ export interface Platform {
   id?: number; // Unique ID for logic linking
   position: Vector2;
   size: Size;
-  type: 'ground' | 'block' | 'pipe' | 'finish' | 'ice' | 'slippery' | 'crumbly' | 'door' | 'plate' | 'aurora' | 'leaf' | 'mushroom' | 'totem' | 'cloud';
+  type: 'ground' | 'block' | 'pipe' | 'finish' | 'ice' | 'crumbly' | 'door' | 'plate' | 'aurora' | 'leaf' | 'mushroom' | 'totem' | 'cloud';
   color: string;
   // State for mechanics
   isPressed?: boolean; // For plates
