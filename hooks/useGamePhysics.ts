@@ -4,7 +4,7 @@ import { GameState, InputState, Player, Platform, Particle, EffectParticle, Enem
 import {
     GRAVITY, TERMINAL_VELOCITY, FRICTION, ICE_FRICTION, WIND_FORCE,
     CANVAS_WIDTH, CANVAS_HEIGHT, HOT_CHOCOLATE_DURATION,
-    LEVEL_1_WIDTH, LEVEL_2_WIDTH, LEVEL_4_WIDTH, COYOTE_TIME, JUMP_BUFFER, INITIAL_RESPAWN_POINT,
+    LEVEL_1_WIDTH, LEVEL_2_WIDTH, LEVEL_3_WIDTH, LEVEL_4_WIDTH, COYOTE_TIME, JUMP_BUFFER, INITIAL_RESPAWN_POINT,
     getWinterEnemies, getButterflyEnemies, getFruitParadiseEnemies, getBossLevelEnemies
 } from '../constants';
 import { soundManager } from '../utils/SoundManager';
@@ -156,16 +156,17 @@ export const useGamePhysics = ({
     const resolveXCollisions = (player: Player, platforms: Platform[]) => {
         const hitX = player.position.x + 5;
         const hitW = player.size.width - 10;
-        const hitY = player.position.y + 5; 
+        const hitY = player.position.y + 5;
         const hitH = player.size.height - 10;
-  
+
         for (const plat of platforms) {
             if (plat.type === 'door' && plat.isOpen) continue;
-            // Aurora platforms are only for visuals or portal triggers, no physical collision
             if (plat.type === 'aurora') continue;
             if (plat.type === 'crumbly' && plat.isFalling && (plat.fallTimer || 0) <= 0) continue;
-            if (plat.type === 'plate' || plat.type === 'totem') continue; 
-            if (plat.type === 'cloud') continue; // Clouds are semi-solid (one way) logic handled in Y
+            if (plat.type === 'plate' || plat.type === 'totem' || plat.type === 'timed_button') continue;
+            if (plat.type === 'cloud') continue;
+            if (plat.type === 'toggle_platform' && !plat.isVisible) continue;
+            if (plat.type === 'spike') continue;
   
             if (isColliding(
                 {x: hitX, y: hitY, w: hitW, h: hitH},
@@ -201,6 +202,7 @@ export const useGamePhysics = ({
             if (plat.type === 'door' && plat.isOpen) continue;
             if (plat.type === 'aurora') continue;
             if (plat.type === 'crumbly' && plat.isFalling && (plat.fallTimer || 0) <= 0) continue;
+            if (plat.type === 'toggle_platform' && !plat.isVisible) continue;
 
             // Trigger Logic (Non-physical)
             if (plat.type === 'plate') {
@@ -210,9 +212,40 @@ export const useGamePhysics = ({
                         soundManager.playCoin();
                         const door = gameState.current.platforms.find(p => p.id === plat.linkId);
                         if (door) door.isOpen = true;
+                        if (plat.linkedPlatformIds) {
+                            plat.linkedPlatformIds.forEach(lid => {
+                                const linkedPlat = gameState.current.platforms.find(lp => lp.id === lid);
+                                if (linkedPlat) {
+                                    if (linkedPlat.type === 'toggle_platform') linkedPlat.isVisible = !linkedPlat.isVisible;
+                                    else if (linkedPlat.type === 'door') linkedPlat.isOpen = true;
+                                }
+                            });
+                        }
                     }
                 }
-                continue; // Plates don't stop movement
+                continue;
+            }
+            if (plat.type === 'timed_button') {
+                if (isColliding({x: hitX, y: hitY, w: hitW, h: hitH}, {x: plat.position.x, y: plat.position.y, w: plat.size.width, h: plat.size.height})) {
+                    if (!plat.isPressed) {
+                        plat.isPressed = true;
+                        plat.buttonTimer = plat.buttonMaxTimer || 180;
+                        soundManager.playCoin();
+                        addFloatingText(plat.position.x, plat.position.y - 20, "Zamanli!", "#fbbf24");
+                        const door = gameState.current.platforms.find(p => p.id === plat.linkId);
+                        if (door) door.isOpen = true;
+                        if (plat.linkedPlatformIds) {
+                            plat.linkedPlatformIds.forEach(lid => {
+                                const linkedPlat = gameState.current.platforms.find(lp => lp.id === lid);
+                                if (linkedPlat) {
+                                    if (linkedPlat.type === 'toggle_platform') linkedPlat.isVisible = !linkedPlat.isVisible;
+                                    else if (linkedPlat.type === 'door') linkedPlat.isOpen = true;
+                                }
+                            });
+                        }
+                    }
+                }
+                continue;
             }
             if (plat.type === 'totem') {
                  if (isColliding({x: hitX, y: hitY, w: hitW, h: hitH}, {x: plat.position.x, y: plat.position.y, w: plat.size.width, h: plat.size.height})) {
@@ -221,7 +254,7 @@ export const useGamePhysics = ({
                          gameState.current.windActive = plat.isActive;
                          plat.deformation = 1;
                          soundManager.playCoin();
-                         addFloatingText(plat.position.x, plat.position.y, plat.isActive ? "Rüzgar!" : "Durdu!", "#fff");
+                         addFloatingText(plat.position.x, plat.position.y, plat.isActive ? "Ruzgar!" : "Durdu!", "#fff");
                          if (gameState.current.level === 1) createDust(plat.position.x + 50, plat.position.y);
                      }
                  }
@@ -316,9 +349,8 @@ export const useGamePhysics = ({
                  // NORMAL GROUND LOGIC
                  player.isGrounded = true;
                  player.coyoteTimer = COYOTE_TIME;
-                 player.velocity.y = 0;
-                 
-                 if (player.velocity.y > 4) { 
+
+                 if (oldVy > 4) {
                      player.scale.x = 1.3;
                      player.scale.y = 0.7;
 
@@ -328,17 +360,24 @@ export const useGamePhysics = ({
                            createDust(player.position.x + player.size.width/2, player.position.y + player.size.height);
                      }
                  }
+
+                 player.velocity.y = 0;
                  
                  if (bestPlatform.type === 'ice') {
                      friction = ICE_FRICTION;
                      if (gameState.current.level === 2) {
                          handlePlayerDamage(player);
-                         addFloatingText(player.position.x, player.position.y - 40, "Su Çok Soğuk!", "#38bdf8");
+                         addFloatingText(player.position.x, player.position.y - 40, "Su Cok Soguk!", "#38bdf8");
                      }
                  } else if (bestPlatform.type === 'slippery') {
                      friction = ICE_FRICTION;
                  } else if (bestPlatform.type === 'crumbly') {
                      if (!bestPlatform.isFalling) bestPlatform.isFalling = true;
+                 } else if (bestPlatform.type === 'spike' && bestPlatform.spikeActive) {
+                     handlePlayerDamage(player);
+                     addFloatingText(player.position.x, player.position.y - 40, "Diken!", "#ef4444");
+                 } else if (bestPlatform.type === 'conveyor') {
+                     player.velocity.x += bestPlatform.conveyorSpeed || 3;
                  }
              }
 
@@ -471,14 +510,14 @@ export const useGamePhysics = ({
                 p.deformation *= 0.8;
                 if (Math.abs(p.deformation) < 0.01) p.deformation = 0;
             }
-    
+
             if (p.type === 'crumbly') {
                 if (p.isFalling && p.fallTimer !== undefined) {
                     if (p.fallTimer > 0) {
                         p.fallTimer--;
                     } else {
                         p.respawnTimer = (p.respawnTimer || 0) + 1;
-                        if (p.respawnTimer > 300) { 
+                        if (p.respawnTimer > 300) {
                             p.isFalling = false;
                             p.fallTimer = p.maxFallTimer || 60;
                             p.respawnTimer = 0;
@@ -487,9 +526,49 @@ export const useGamePhysics = ({
                     }
                 }
             }
+
+            if (p.type === 'moving') {
+                if (!p.originalPosition) {
+                    p.originalPosition = { x: p.position.x, y: p.position.y };
+                }
+                p.movePhase = (p.movePhase || 0) + 0.02;
+                const offset = Math.sin(p.movePhase) * (p.moveDistance || 100);
+                if (p.moveDirection === 'vertical') {
+                    p.position.y = p.originalPosition.y + offset;
+                } else {
+                    p.position.x = p.originalPosition.x + offset;
+                }
+            }
+
+            if (p.type === 'spike') {
+                p.spikeTimer = (p.spikeTimer || 0) + 1;
+                if (p.spikeTimer >= (p.spikeMaxTimer || 90)) {
+                    p.spikeActive = !p.spikeActive;
+                    p.spikeTimer = 0;
+                }
+            }
+
+            if (p.type === 'timed_button') {
+                if (p.isPressed && p.buttonTimer !== undefined) {
+                    p.buttonTimer--;
+                    if (p.buttonTimer <= 0) {
+                        p.isPressed = false;
+                        if (p.linkedPlatformIds) {
+                            p.linkedPlatformIds.forEach(lid => {
+                                const linkedDoor = gameState.current.platforms.find(lp => lp.id === lid);
+                                if (linkedDoor) linkedDoor.isOpen = false;
+                            });
+                        }
+                        const linkedDoor = gameState.current.platforms.find(lp => lp.id === p.linkId);
+                        if (linkedDoor) linkedDoor.isOpen = false;
+                    }
+                }
+            }
         });
     
         // Enemy Logic Updates (Patrols)
+        const livingPlayers = gameState.current.players.filter(p => !p.isDead);
+
         gameState.current.enemies.forEach(enemy => {
             if (enemy.type === 'boss') {
                 updateBossAI(enemy, gameState.current, addFloatingText);
@@ -504,6 +583,83 @@ export const useGamePhysics = ({
                 if (Math.abs(enemy.position.x - enemy.originalX) > (enemy.patrolDistance || 300)) {
                     enemy.direction = (enemy.direction || 1) === 1 ? -1 : 1;
                 }
+            }
+            else if (enemy.type === 'shooter') {
+                enemy.shootCooldown = (enemy.shootCooldown || 0) - 1;
+                if (enemy.shootCooldown <= 0 && livingPlayers.length > 0) {
+                    const nearestPlayer = livingPlayers.reduce((nearest, p) => {
+                        const d1 = Math.abs(p.position.x - enemy.position.x);
+                        const d2 = Math.abs(nearest.position.x - enemy.position.x);
+                        return d1 < d2 ? p : nearest;
+                    }, livingPlayers[0]);
+
+                    const dx = nearestPlayer.position.x - enemy.position.x;
+                    const dy = nearestPlayer.position.y - enemy.position.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < 400) {
+                        enemy.direction = dx > 0 ? 1 : -1;
+                        gameState.current.projectiles.push({
+                            id: Math.random() * 10000,
+                            position: { x: enemy.position.x + enemy.size.width / 2, y: enemy.position.y + enemy.size.height / 2 },
+                            velocity: { x: (dx / dist) * 4, y: (dy / dist) * 4 },
+                            size: 12,
+                            type: 'ice_ball',
+                            damage: 1,
+                            life: 120
+                        });
+                        enemy.shootCooldown = enemy.shootMaxCooldown || 90;
+                    }
+                }
+            }
+            else if (enemy.type === 'chaser' && enemy.originalX) {
+                let isChasing = false;
+                if (livingPlayers.length > 0) {
+                    const nearestPlayer = livingPlayers.reduce((nearest, p) => {
+                        const d1 = Math.abs(p.position.x - enemy.position.x);
+                        const d2 = Math.abs(nearest.position.x - enemy.position.x);
+                        return d1 < d2 ? p : nearest;
+                    }, livingPlayers[0]);
+
+                    const dx = nearestPlayer.position.x - enemy.position.x;
+                    const dist = Math.abs(dx);
+
+                    if (dist < (enemy.chaseRange || 250)) {
+                        isChasing = true;
+                        enemy.direction = dx > 0 ? 1 : -1;
+                        enemy.position.x += (enemy.speed || 2) * 1.5 * enemy.direction;
+                    }
+                }
+
+                if (!isChasing) {
+                    enemy.position.x += (enemy.speed || 1) * (enemy.direction || 1);
+                    if (enemy.position.x > enemy.originalX + (enemy.patrolDistance || 150)) enemy.direction = -1;
+                    if (enemy.position.x < enemy.originalX) enemy.direction = 1;
+                }
+                enemy.isChasing = isChasing;
+            }
+            else if (enemy.type === 'jumper' && enemy.originalX && enemy.originalY !== undefined) {
+                enemy.jumpTimer = (enemy.jumpTimer || 0) + 1;
+                if (!enemy.isJumping && enemy.jumpTimer >= (enemy.jumpMaxTimer || 60)) {
+                    enemy.isJumping = true;
+                    enemy.velocityY = -12;
+                    enemy.jumpTimer = 0;
+                }
+
+                if (enemy.isJumping) {
+                    enemy.velocityY = (enemy.velocityY || 0) + 0.5;
+                    enemy.position.y += enemy.velocityY;
+
+                    if (enemy.position.y >= enemy.originalY) {
+                        enemy.position.y = enemy.originalY;
+                        enemy.isJumping = false;
+                        enemy.velocityY = 0;
+                    }
+                }
+
+                enemy.position.x += (enemy.speed || 1) * (enemy.direction || 1);
+                if (enemy.position.x > enemy.originalX + (enemy.patrolDistance || 100)) enemy.direction = -1;
+                if (enemy.position.x < enemy.originalX) enemy.direction = 1;
             }
         });
 
@@ -572,8 +728,7 @@ export const useGamePhysics = ({
             callbacks.setTutorialState((prev: any) => ({ ...prev, moved: true }));
             callbacks.tutorialStateRef.current.moved = true;
         }
-    
-        const livingPlayers = gameState.current.players.filter(p => !p.isDead);
+
         let playersInPortal = 0;
         const portal = gameState.current.platforms.find(p => p.type === 'aurora');
     
@@ -657,9 +812,9 @@ export const useGamePhysics = ({
                      p.scale.y = 1.2;
                 }
 
-                // Variable Jump Height
+                // Variable Jump Height (smoother cut)
                 if (!up && p.velocity.y < -4) {
-                     p.velocity.y *= 0.5;
+                     p.velocity.y *= 0.75;
                 }
 
             } else {
@@ -692,7 +847,7 @@ export const useGamePhysics = ({
                          p.scale.x = 0.8;
                          p.scale.y = 1.2;
                     }
-                    if (!inputs.current['ArrowUp'] && p.velocity.y < -4) p.velocity.y *= 0.5;
+                    if (!inputs.current['ArrowUp'] && p.velocity.y < -4) p.velocity.y *= 0.75;
                 }
                 else if (p.id === 'baba') {
                     if (inputs.current['a'] || inputs.current['A']) { p.velocity.x -= effectiveMoveSpeed; p.facing = 'left'; }
@@ -722,7 +877,7 @@ export const useGamePhysics = ({
                         p.scale.x = 0.8;
                         p.scale.y = 1.2;
                     }
-                    if (!(inputs.current['w'] || inputs.current['W']) && p.velocity.y < -4) p.velocity.y *= 0.5;
+                    if (!(inputs.current['w'] || inputs.current['W']) && p.velocity.y < -4) p.velocity.y *= 0.75;
                 }
             }
 
@@ -967,7 +1122,7 @@ export const useGamePhysics = ({
             // Clamp Camera based on Level
             let levelWidth = LEVEL_1_WIDTH;
             if (gameState.current.level === 2) levelWidth = LEVEL_2_WIDTH;
-            if (gameState.current.level === 3) levelWidth = 8000;
+            if (gameState.current.level === 3) levelWidth = LEVEL_3_WIDTH;
             if (gameState.current.level === 4) levelWidth = LEVEL_4_WIDTH;
 
             const maxScroll = levelWidth - CANVAS_WIDTH;

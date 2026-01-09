@@ -1,7 +1,13 @@
-import { Enemy, GameState, Player, Projectile, AuroraCrystal } from '../types';
+import { Enemy, GameState, Projectile, AuroraCrystal } from '../types';
 
 let nextProjectileId = 1000;
 let nextCrystalId = 2000;
+let bossAttackTimeouts: number[] = [];
+
+export const clearBossTimeouts = () => {
+    bossAttackTimeouts.forEach(id => window.clearTimeout(id));
+    bossAttackTimeouts = [];
+};
 
 export const updateBossAI = (
     boss: Enemy,
@@ -136,15 +142,17 @@ const performSlam = (
 ) => {
     boss.isAttacking = true;
     boss.attackType = 'slam';
-    addFloatingText(boss.position.x + 75, boss.position.y - 30, "⚠️", "#fbbf24");
+    addFloatingText(boss.position.x + 75, boss.position.y - 30, "!", "#fbbf24");
 
-    setTimeout(() => {
-        if (boss.health && boss.health > 0) {
+    const timeoutId = window.setTimeout(() => {
+        if (boss.health && boss.health > 0 && gameState.status === 'playing') {
             gameState.screenShake = 12;
             createShockwave(boss, gameState);
             boss.isAttacking = false;
         }
+        bossAttackTimeouts = bossAttackTimeouts.filter(id => id !== timeoutId);
     }, 800);
+    bossAttackTimeouts.push(timeoutId);
 };
 
 const performDash = (
@@ -189,11 +197,13 @@ const performProjectileAttack = (
         });
     }
 
-    setTimeout(() => {
-        if (boss.health && boss.health > 0) {
+    const timeoutId = window.setTimeout(() => {
+        if (boss.health && boss.health > 0 && gameState.status === 'playing') {
             boss.isAttacking = false;
         }
+        bossAttackTimeouts = bossAttackTimeouts.filter(id => id !== timeoutId);
     }, 600);
+    bossAttackTimeouts.push(timeoutId);
 };
 
 const performSummon = (
@@ -203,14 +213,15 @@ const performSummon = (
 ) => {
     boss.isAttacking = true;
     boss.attackType = 'summon';
-    addFloatingText(boss.position.x + 75, boss.position.y - 30, "ÇAĞIR!", "#a855f7");
+    addFloatingText(boss.position.x + 75, boss.position.y - 30, "CAGIR!", "#a855f7");
 
     const minionCount = boss.phase === 3 ? 3 : 2;
+    const arenaFloorY = 600;
     for (let i = 0; i < minionCount; i++) {
         const spawnX = boss.position.x + (i - minionCount / 2) * 150;
         gameState.enemies.push({
             id: 9000 + gameState.globalTime + i,
-            position: { x: spawnX, y: 400 },
+            position: { x: spawnX, y: arenaFloorY },
             size: { width: 40, height: 50 },
             type: 'snowman',
             color: '#94a3b8',
@@ -221,11 +232,13 @@ const performSummon = (
         });
     }
 
-    setTimeout(() => {
-        if (boss.health && boss.health > 0) {
+    const timeoutId = window.setTimeout(() => {
+        if (boss.health && boss.health > 0 && gameState.status === 'playing') {
             boss.isAttacking = false;
         }
+        bossAttackTimeouts = bossAttackTimeouts.filter(id => id !== timeoutId);
     }, 800);
+    bossAttackTimeouts.push(timeoutId);
 };
 
 const createShockwave = (boss: Enemy, gameState: GameState) => {

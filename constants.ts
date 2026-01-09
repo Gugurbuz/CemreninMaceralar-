@@ -16,10 +16,10 @@ export const COYOTE_TIME = 8; // Frames allowed to jump after falling off ledge
 export const JUMP_BUFFER = 8; // Frames to remember jump press before hitting ground
 
 // Level Boundaries for Camera Clamping (Extended)
-export const LEVEL_1_WIDTH = 14000;
-export const LEVEL_2_WIDTH = 15000; // Extended Level 2
-export const LEVEL_3_WIDTH = 5500;  // Level 3 Length
-export const LEVEL_4_WIDTH = 10000; // Level 4 Length (Boss Level)
+export const LEVEL_1_WIDTH = 16000;
+export const LEVEL_2_WIDTH = 17000;
+export const LEVEL_3_WIDTH = 7500;
+export const LEVEL_4_WIDTH = 10000;
 
 export const INITIAL_RESPAWN_POINT = { x: 100, y: 300 };
 
@@ -121,9 +121,36 @@ export const getWinterPlatforms = (): Platform[] => [
   { position: { x: 9800, y: 300 }, size: { width: 400, height: 20 }, type: 'ground', color: '#e2e8f0' },
   { position: { x: 10300, y: 300 }, size: { width: 100, height: 60 }, type: 'mushroom', color: '#67e8f9', deformation: 0 },
   { position: { x: 10500, y: 150 }, size: { width: 2000, height: 20 }, type: 'ice', color: '#a5f3fc' }, 
-  { position: { x: 12600, y: 150 }, size: { width: 700, height: 600 }, type: 'ground', color: '#e2e8f0' },
-  { position: { x: 13200, y: -200 }, size: { width: 100, height: 1000 }, type: 'ground', color: '#e2e8f0' },
-  { position: { x: 12800, y: 0 }, size: { width: 150, height: 150 }, type: 'aurora', color: 'transparent', requiresCoop: true },
+  { position: { x: 12600, y: 150 }, size: { width: 500, height: 600 }, type: 'ground', color: '#e2e8f0' },
+
+  // NEW AREA: Ice Cave with Moving Platforms (x: 13100-14500)
+  { position: { x: 13100, y: 400 }, size: { width: 100, height: 20 }, type: 'moving', color: '#60a5fa', moveDirection: 'vertical', moveDistance: 150 },
+  { position: { x: 13350, y: 300 }, size: { width: 100, height: 20 }, type: 'moving', color: '#60a5fa', moveDirection: 'horizontal', moveDistance: 100 },
+  { position: { x: 13600, y: 250 }, size: { width: 100, height: 20 }, type: 'moving', color: '#60a5fa', moveDirection: 'vertical', moveDistance: 120 },
+  { position: { x: 13850, y: 200 }, size: { width: 150, height: 20 }, type: 'ground', color: '#e2e8f0' },
+
+  // Spike Trap Challenge
+  { position: { x: 14050, y: 400 }, size: { width: 80, height: 20 }, type: 'spike', color: '#ef4444', spikeMaxTimer: 90, spikeActive: false },
+  { position: { x: 14150, y: 400 }, size: { width: 80, height: 20 }, type: 'spike', color: '#ef4444', spikeMaxTimer: 90, spikeActive: true },
+  { position: { x: 14250, y: 400 }, size: { width: 80, height: 20 }, type: 'spike', color: '#ef4444', spikeMaxTimer: 90, spikeActive: false },
+  { position: { x: 14000, y: 420 }, size: { width: 400, height: 30 }, type: 'ice', color: '#bae6fd' },
+  { position: { x: 14400, y: 350 }, size: { width: 100, height: 20 }, type: 'ground', color: '#e2e8f0' },
+
+  // Timed Button Puzzle (x: 14500-15000)
+  { id: 201, position: { x: 14600, y: 500 }, size: { width: 60, height: 15 }, type: 'timed_button', color: '#fbbf24', isPressed: false, buttonMaxTimer: 180, linkId: 202 },
+  { id: 202, position: { x: 14900, y: 300 }, size: { width: 40, height: 100 }, type: 'door', color: '#334155', isOpen: false },
+  { position: { x: 14500, y: 520 }, size: { width: 200, height: 30 }, type: 'ground', color: '#e2e8f0' },
+  { position: { x: 14750, y: 450 }, size: { width: 80, height: 20 }, type: 'ice', color: '#bae6fd' },
+  { position: { x: 14850, y: 380 }, size: { width: 80, height: 20 }, type: 'ice', color: '#bae6fd' },
+  { position: { x: 14940, y: 300 }, size: { width: 200, height: 100 }, type: 'ground', color: '#e2e8f0' },
+
+  // Final Stretch (x: 15000-15500)
+  { position: { x: 15100, y: 400 }, size: { width: 80, height: 60 }, type: 'mushroom', color: '#67e8f9', deformation: 0 },
+  { position: { x: 15250, y: 250 }, size: { width: 300, height: 500 }, type: 'ground', color: '#e2e8f0' },
+
+  // End Wall and Portal
+  { position: { x: 15500, y: -200 }, size: { width: 100, height: 1000 }, type: 'ground', color: '#e2e8f0' },
+  { position: { x: 15300, y: 100 }, size: { width: 150, height: 150 }, type: 'aurora', color: 'transparent', requiresCoop: true },
 ];
 
 export const getWinterCoins = (): Coin[] => [
@@ -147,6 +174,14 @@ export const getWinterCoins = (): Coin[] => [
     { id: 91, position: { x: 11200, y: 100 }, size: 14, collected: false, baseY: 100, type: 'kanelbulle' },
     { id: 92, position: { x: 11600, y: 100 }, size: 14, collected: false, baseY: 100, type: 'kanelbulle' },
     { id: 93, position: { x: 12000, y: 100 }, size: 14, collected: false, baseY: 100, type: 'hot-chocolate' },
+    // New Area Coins
+    { id: 94, position: { x: 13150, y: 350 }, size: 14, collected: false, baseY: 350, type: 'gold' },
+    { id: 95, position: { x: 13400, y: 250 }, size: 14, collected: false, baseY: 250, type: 'gold' },
+    { id: 96, position: { x: 13650, y: 200 }, size: 14, collected: false, baseY: 200, type: 'gold' },
+    { id: 97, position: { x: 14200, y: 350 }, size: 14, collected: false, baseY: 350, type: 'hot-chocolate' },
+    { id: 98, position: { x: 14550, y: 450 }, size: 14, collected: false, baseY: 450, type: 'kanelbulle' },
+    { id: 99, position: { x: 15000, y: 250 }, size: 14, collected: false, baseY: 250, type: 'kanelbulle' },
+    { id: 100, position: { x: 15350, y: 200 }, size: 14, collected: false, baseY: 200, type: 'hot-chocolate' },
 ];
 
 export const getWinterEnemies = (): Enemy[] => [
@@ -159,17 +194,25 @@ export const getWinterEnemies = (): Enemy[] => [
     { id: 4, position: { x: 6000, y: 200 }, size: { width: 40, height: 30 }, type: 'bird', color: '#1e293b', originalX: 6000, originalY: 200, patrolDistance: 200, speed: 3, direction: 1 },
     { id: 8, position: { x: 6400, y: 250 }, size: { width: 40, height: 30 }, type: 'bird', color: '#1e293b', originalX: 6400, originalY: 250, patrolDistance: 200, speed: 3, direction: -1 },
     { id: 10, position: { x: 7700, y: 450 }, size: { width: 60, height: 70 }, type: 'yeti', color: '#e2e8f0', originalX: 7700, patrolDistance: 200, speed: 2, direction: 1 }, 
-    { id: 11, position: { x: 8700, y: 150 }, size: { width: 40, height: 50 }, type: 'snowman', color: '#fff', originalX: 8700, patrolDistance: 200, speed: 2, direction: 1 }, 
-    { id: 12, position: { x: 9300, y: 100 }, size: { width: 40, height: 30 }, type: 'bird', color: '#1e293b', originalX: 9300, originalY: 100, patrolDistance: 300, speed: 3, direction: 1 }, 
+    { id: 11, position: { x: 8700, y: 150 }, size: { width: 40, height: 50 }, type: 'snowman', color: '#fff', originalX: 8700, patrolDistance: 200, speed: 2, direction: 1 },
+    { id: 12, position: { x: 9300, y: 100 }, size: { width: 40, height: 30 }, type: 'bird', color: '#1e293b', originalX: 9300, originalY: 100, patrolDistance: 300, speed: 3, direction: 1 },
+    // New Area Enemies
+    { id: 13, position: { x: 13200, y: 350 }, size: { width: 40, height: 30 }, type: 'bird', color: '#1e293b', originalX: 13200, originalY: 350, patrolDistance: 200, speed: 2.5, direction: 1 },
+    { id: 14, position: { x: 13900, y: 150 }, size: { width: 45, height: 45 }, type: 'shooter', color: '#dc2626', originalX: 13900, shootMaxCooldown: 120, direction: -1 },
+    { id: 15, position: { x: 14100, y: 370 }, size: { width: 35, height: 35 }, type: 'jumper', color: '#22c55e', originalX: 14100, originalY: 370, patrolDistance: 80, jumpMaxTimer: 90, speed: 1.5, direction: 1 },
+    { id: 16, position: { x: 14700, y: 470 }, size: { width: 40, height: 40 }, type: 'chaser', color: '#f97316', originalX: 14700, patrolDistance: 100, chaseRange: 200, speed: 2, direction: 1 },
+    { id: 17, position: { x: 15100, y: 350 }, size: { width: 40, height: 50 }, type: 'snowman', color: '#fff', originalX: 15100, patrolDistance: 100, speed: 2, direction: 1 },
 ];
 
 export const getWinterCheckpoints = (): Checkpoint[] => [
-    { id: 1, position: { x: 2100, y: 550 }, size: { width: 40, height: 60 }, triggered: false }, 
-    { id: 2, position: { x: 4000, y: 450 }, size: { width: 40, height: 60 }, triggered: false }, 
-    { id: 3, position: { x: 5700, y: 550 }, size: { width: 40, height: 60 }, triggered: false }, 
+    { id: 1, position: { x: 2100, y: 550 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 2, position: { x: 4000, y: 450 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 3, position: { x: 5700, y: 550 }, size: { width: 40, height: 60 }, triggered: false },
     { id: 4, position: { x: 7300, y: 500 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 5, position: { x: 8700, y: 150 }, size: { width: 40, height: 60 }, triggered: false }, 
-    { id: 6, position: { x: 10000, y: 250 }, size: { width: 40, height: 60 }, triggered: false }, 
+    { id: 5, position: { x: 8700, y: 150 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 6, position: { x: 10000, y: 250 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 7, position: { x: 12700, y: 100 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 8, position: { x: 14450, y: 300 }, size: { width: 40, height: 60 }, triggered: false },
 ];
 
 // --- LEVEL 2: BUTTERFLY VALLEY (EXTENDED) ---
@@ -215,11 +258,38 @@ export const getButterflyPlatforms = (): Platform[] => [
   { position: { x: 11200, y: 600 }, size: { width: 200, height: 20 }, type: 'slippery', color: '#86efac' },
   
   // Final Run
-  { position: { x: 11500, y: 650 }, size: { width: 2000, height: 200 }, type: 'ground', color: '#86efac' },
-  { position: { x: 13600, y: -200 }, size: { width: 100, height: 1000 }, type: 'ground', color: '#86efac' }, // Wall
+  { position: { x: 11500, y: 650 }, size: { width: 1200, height: 200 }, type: 'ground', color: '#86efac' },
 
-  // The Portal to Level 3
-  { position: { x: 13200, y: 500 }, size: { width: 150, height: 150 }, type: 'aurora', color: 'transparent', requiresCoop: true },
+  // NEW AREA: Flower Labyrinth (x: 12700-14500)
+  { position: { x: 12700, y: 550 }, size: { width: 100, height: 20 }, type: 'moving', color: '#60a5fa', moveDirection: 'vertical', moveDistance: 100 },
+  { position: { x: 12900, y: 450 }, size: { width: 150, height: 20 }, type: 'leaf', color: '#22c55e' },
+  { position: { x: 13100, y: 350 }, size: { width: 100, height: 20 }, type: 'moving', color: '#60a5fa', moveDirection: 'horizontal', moveDistance: 80 },
+  { position: { x: 13300, y: 280 }, size: { width: 150, height: 20 }, type: 'leaf', color: '#22c55e' },
+  { position: { x: 13500, y: 380 }, size: { width: 100, height: 80 }, type: 'mushroom', color: '#fca5a5', deformation: 0 },
+
+  // Conveyor Challenge
+  { position: { x: 13700, y: 500 }, size: { width: 200, height: 20 }, type: 'conveyor', color: '#475569', conveyorSpeed: 4 },
+  { position: { x: 13900, y: 500 }, size: { width: 200, height: 20 }, type: 'conveyor', color: '#475569', conveyorSpeed: -4 },
+  { position: { x: 14100, y: 450 }, size: { width: 150, height: 20 }, type: 'leaf', color: '#22c55e' },
+
+  // Two-Button Puzzle
+  { id: 301, position: { x: 14300, y: 500 }, size: { width: 50, height: 15 }, type: 'timed_button', color: '#fbbf24', isPressed: false, buttonMaxTimer: 240, linkedPlatformIds: [303] },
+  { id: 302, position: { x: 14600, y: 350 }, size: { width: 50, height: 15 }, type: 'timed_button', color: '#fbbf24', isPressed: false, buttonMaxTimer: 240, linkedPlatformIds: [303] },
+  { id: 303, position: { x: 14900, y: 200 }, size: { width: 120, height: 20 }, type: 'toggle_platform', color: '#a855f7', isVisible: false },
+  { position: { x: 14250, y: 520 }, size: { width: 150, height: 30 }, type: 'ground', color: '#86efac' },
+  { position: { x: 14550, y: 370 }, size: { width: 150, height: 30 }, type: 'ground', color: '#86efac' },
+  { position: { x: 14850, y: 250 }, size: { width: 100, height: 20 }, type: 'leaf', color: '#22c55e' },
+
+  // Spike Gauntlet
+  { position: { x: 15050, y: 300 }, size: { width: 60, height: 20 }, type: 'spike', color: '#ef4444', spikeMaxTimer: 60, spikeActive: false },
+  { position: { x: 15120, y: 300 }, size: { width: 60, height: 20 }, type: 'spike', color: '#ef4444', spikeMaxTimer: 60, spikeActive: true },
+  { position: { x: 15000, y: 320 }, size: { width: 250, height: 30 }, type: 'ground', color: '#86efac' },
+  { position: { x: 15300, y: 400 }, size: { width: 100, height: 80 }, type: 'mushroom', color: '#fca5a5', deformation: 0 },
+
+  // Final Platform and Portal
+  { position: { x: 15500, y: 600 }, size: { width: 1400, height: 200 }, type: 'ground', color: '#86efac' },
+  { position: { x: 16800, y: -200 }, size: { width: 100, height: 1000 }, type: 'ground', color: '#86efac' },
+  { position: { x: 16400, y: 450 }, size: { width: 150, height: 150 }, type: 'aurora', color: 'transparent', requiresCoop: true },
 ];
 
 export const getButterflyCoins = (): Coin[] => [
@@ -234,26 +304,44 @@ export const getButterflyCoins = (): Coin[] => [
     { id: 211, position: { x: 8550, y: 200 }, size: 14, collected: false, baseY: 200, type: 'gold' },
     { id: 212, position: { x: 8900, y: 100 }, size: 14, collected: false, baseY: 100, type: 'hot-chocolate' },
     { id: 213, position: { x: 9250, y: 100 }, size: 14, collected: false, baseY: 100, type: 'kanelbulle' },
-    { id: 214, position: { x: 11100, y: 450 }, size: 14, collected: false, baseY: 450, type: 'gold' }, // Slide coin
-    { id: 215, position: { x: 11300, y: 500 }, size: 14, collected: false, baseY: 500, type: 'gold' }, // Slide coin
-    { id: 216, position: { x: 12500, y: 550 }, size: 14, collected: false, baseY: 550, type: 'kanelbulle' }, // Final stretch
+    { id: 214, position: { x: 11100, y: 450 }, size: 14, collected: false, baseY: 450, type: 'gold' },
+    { id: 215, position: { x: 11300, y: 500 }, size: 14, collected: false, baseY: 500, type: 'gold' },
+    { id: 216, position: { x: 12500, y: 550 }, size: 14, collected: false, baseY: 550, type: 'kanelbulle' },
+    // New Area Coins
+    { id: 217, position: { x: 12750, y: 500 }, size: 14, collected: false, baseY: 500, type: 'gold' },
+    { id: 218, position: { x: 13150, y: 300 }, size: 14, collected: false, baseY: 300, type: 'gold' },
+    { id: 219, position: { x: 13350, y: 230 }, size: 14, collected: false, baseY: 230, type: 'hot-chocolate' },
+    { id: 220, position: { x: 13800, y: 450 }, size: 14, collected: false, baseY: 450, type: 'gold' },
+    { id: 221, position: { x: 14000, y: 450 }, size: 14, collected: false, baseY: 450, type: 'gold' },
+    { id: 222, position: { x: 14950, y: 150 }, size: 14, collected: false, baseY: 150, type: 'hot-chocolate' },
+    { id: 223, position: { x: 15350, y: 300 }, size: 14, collected: false, baseY: 300, type: 'kanelbulle' },
+    { id: 224, position: { x: 16000, y: 550 }, size: 14, collected: false, baseY: 550, type: 'kanelbulle' },
+    { id: 225, position: { x: 16300, y: 550 }, size: 14, collected: false, baseY: 550, type: 'hot-chocolate' },
 ];
 
 export const getButterflyEnemies = (): Enemy[] => [
     { id: 201, position: { x: 1900, y: 570 }, size: { width: 40, height: 30 }, type: 'slime', color: '#16a34a', originalX: 1900, patrolDistance: 200, speed: 2, direction: 1 },
     { id: 202, position: { x: 3400, y: 370 }, size: { width: 40, height: 30 }, type: 'bird', color: '#ef4444', originalX: 3400, originalY: 370, patrolDistance: 150, speed: 3, direction: 1 },
     { id: 203, position: { x: 4700, y: 570 }, size: { width: 60, height: 50 }, type: 'slime', color: '#16a34a', originalX: 4700, patrolDistance: 300, speed: 1.5, direction: -1 },
-    // Extension Enemies
-    { id: 204, position: { x: 8800, y: 130 }, size: { width: 40, height: 30 }, type: 'bird', color: '#ef4444', originalX: 8800, originalY: 130, patrolDistance: 200, speed: 3.5, direction: 1 }, // Hive Guardian
-    { id: 205, position: { x: 9900, y: 570 }, size: { width: 60, height: 50 }, type: 'slime', color: '#16a34a', originalX: 9900, patrolDistance: 400, speed: 2, direction: 1 }, // Drop Zone Patrol
-    { id: 206, position: { x: 12000, y: 620 }, size: { width: 60, height: 50 }, type: 'slime', color: '#16a34a', originalX: 12000, patrolDistance: 500, speed: 1, direction: 1 }, // Final Boss Slime
+    { id: 204, position: { x: 8800, y: 130 }, size: { width: 40, height: 30 }, type: 'bird', color: '#ef4444', originalX: 8800, originalY: 130, patrolDistance: 200, speed: 3.5, direction: 1 },
+    { id: 205, position: { x: 9900, y: 570 }, size: { width: 60, height: 50 }, type: 'slime', color: '#16a34a', originalX: 9900, patrolDistance: 400, speed: 2, direction: 1 },
+    { id: 206, position: { x: 12000, y: 620 }, size: { width: 60, height: 50 }, type: 'slime', color: '#16a34a', originalX: 12000, patrolDistance: 500, speed: 1, direction: 1 },
+    // New Area Enemies
+    { id: 207, position: { x: 12950, y: 400 }, size: { width: 40, height: 40 }, type: 'chaser', color: '#f97316', originalX: 12950, patrolDistance: 150, chaseRange: 200, speed: 2.5, direction: 1 },
+    { id: 208, position: { x: 13600, y: 300 }, size: { width: 40, height: 30 }, type: 'bird', color: '#ef4444', originalX: 13600, originalY: 300, patrolDistance: 150, speed: 3, direction: -1 },
+    { id: 209, position: { x: 14150, y: 400 }, size: { width: 35, height: 35 }, type: 'jumper', color: '#22c55e', originalX: 14150, originalY: 400, patrolDistance: 100, jumpMaxTimer: 75, speed: 1.5, direction: 1 },
+    { id: 210, position: { x: 15100, y: 270 }, size: { width: 45, height: 45 }, type: 'shooter', color: '#dc2626', originalX: 15100, shootMaxCooldown: 100, direction: -1 },
+    { id: 211, position: { x: 15800, y: 570 }, size: { width: 60, height: 50 }, type: 'slime', color: '#16a34a', originalX: 15800, patrolDistance: 300, speed: 2, direction: 1 },
 ];
 
 export const getButterflyCheckpoints = (): Checkpoint[] => [
     { id: 201, position: { x: 1800, y: 550 }, size: { width: 40, height: 60 }, triggered: false },
     { id: 202, position: { x: 4400, y: 550 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 203, position: { x: 7600, y: 500 }, size: { width: 40, height: 60 }, triggered: false }, // Mid-way check
-    { id: 204, position: { x: 9850, y: 550 }, size: { width: 40, height: 60 }, triggered: false }, // After the hive drop
+    { id: 203, position: { x: 7600, y: 500 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 204, position: { x: 9850, y: 550 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 205, position: { x: 12600, y: 600 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 206, position: { x: 14500, y: 470 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 207, position: { x: 15600, y: 550 }, size: { width: 40, height: 60 }, triggered: false },
 ];
 
 // --- LEVEL 3: FRUIT PARADISE (BONUS LEVEL) ---
@@ -296,11 +384,23 @@ export const getFruitParadisePlatforms = (): Platform[] => [
     { position: { x: 4500, y: 300 }, size: { width: 100, height: 15 }, type: 'leaf', color: '#86efac' },
 
     // Final Celebration Ground
-    { position: { x: 4900, y: 650 }, size: { width: 800, height: 150 }, type: 'ground', color: '#fbcfe8' },
-    { position: { x: 5600, y: -200 }, size: { width: 100, height: 1000 }, type: 'ground', color: '#fbcfe8' }, // Wall
+    { position: { x: 4900, y: 650 }, size: { width: 600, height: 150 }, type: 'ground', color: '#fbcfe8' },
 
-    // The Final Portal
-    { position: { x: 5300, y: 500 }, size: { width: 150, height: 150 }, type: 'aurora', color: 'transparent', requiresCoop: true },
+    // NEW AREA: Rainbow Bridge (x: 5500-6500)
+    { position: { x: 5500, y: 550 }, size: { width: 100, height: 20 }, type: 'moving', color: '#ef4444', moveDirection: 'vertical', moveDistance: 80 },
+    { position: { x: 5700, y: 450 }, size: { width: 100, height: 20 }, type: 'moving', color: '#f97316', moveDirection: 'horizontal', moveDistance: 60 },
+    { position: { x: 5900, y: 350 }, size: { width: 100, height: 20 }, type: 'moving', color: '#fbbf24', moveDirection: 'vertical', moveDistance: 80 },
+    { position: { x: 6100, y: 280 }, size: { width: 100, height: 20 }, type: 'moving', color: '#22c55e', moveDirection: 'horizontal', moveDistance: 60 },
+    { position: { x: 6300, y: 350 }, size: { width: 100, height: 20 }, type: 'moving', color: '#60a5fa', moveDirection: 'vertical', moveDistance: 80 },
+
+    // Bounce Finale
+    { position: { x: 6500, y: 500 }, size: { width: 150, height: 60 }, type: 'mushroom', color: '#fca5a5', deformation: 0 },
+    { position: { x: 6750, y: 400 }, size: { width: 150, height: 60 }, type: 'mushroom', color: '#fca5a5', deformation: 0 },
+
+    // Final Ground and Portal
+    { position: { x: 6950, y: 600 }, size: { width: 600, height: 200 }, type: 'ground', color: '#fbcfe8' },
+    { position: { x: 7400, y: -200 }, size: { width: 100, height: 1000 }, type: 'ground', color: '#fbcfe8' },
+    { position: { x: 7100, y: 450 }, size: { width: 150, height: 150 }, type: 'aurora', color: 'transparent', requiresCoop: true },
 ];
 
 export const getFruitParadiseCoins = (): Coin[] => [
@@ -402,14 +502,28 @@ export const getFruitParadiseCoins = (): Coin[] => [
     { id: 383, position: { x: 5350, y: 550 }, size: 20, collected: false, baseY: 550, type: 'hot-chocolate' },
     { id: 384, position: { x: 5100, y: 500 }, size: 20, collected: false, baseY: 500, type: 'kanelbulle' },
     { id: 385, position: { x: 5300, y: 500 }, size: 20, collected: false, baseY: 500, type: 'hot-chocolate' },
+    // Rainbow Bridge Coins
+    { id: 386, position: { x: 5550, y: 500 }, size: 16, collected: false, baseY: 500, type: 'apple' },
+    { id: 387, position: { x: 5750, y: 400 }, size: 16, collected: false, baseY: 400, type: 'banana' },
+    { id: 388, position: { x: 5950, y: 300 }, size: 16, collected: false, baseY: 300, type: 'cherry' },
+    { id: 389, position: { x: 6150, y: 230 }, size: 16, collected: false, baseY: 230, type: 'apple' },
+    { id: 390, position: { x: 6350, y: 300 }, size: 16, collected: false, baseY: 300, type: 'banana' },
+    { id: 391, position: { x: 6550, y: 400 }, size: 16, collected: false, baseY: 400, type: 'cherry' },
+    { id: 392, position: { x: 6600, y: 300 }, size: 16, collected: false, baseY: 300, type: 'apple' },
+    { id: 393, position: { x: 6800, y: 300 }, size: 16, collected: false, baseY: 300, type: 'banana' },
+    { id: 394, position: { x: 7000, y: 550 }, size: 20, collected: false, baseY: 550, type: 'kanelbulle' },
+    { id: 395, position: { x: 7150, y: 550 }, size: 20, collected: false, baseY: 550, type: 'kanelbulle' },
+    { id: 396, position: { x: 7300, y: 550 }, size: 20, collected: false, baseY: 550, type: 'hot-chocolate' },
 ];
 
 export const getFruitParadiseEnemies = (): Enemy[] => []; // No enemies!
 
 export const getFruitParadiseCheckpoints = (): Checkpoint[] => [
-    { id: 301, position: { x: 1650, y: 550 }, size: { width: 40, height: 60 }, triggered: false }, // After cloud trail
-    { id: 302, position: { x: 2600, y: 600 }, size: { width: 40, height: 60 }, triggered: false }, // In fruit orchard
-    { id: 303, position: { x: 4200, y: 450 }, size: { width: 40, height: 60 }, triggered: false }, // After sky high section
+    { id: 301, position: { x: 1650, y: 550 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 302, position: { x: 2600, y: 600 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 303, position: { x: 4200, y: 450 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 304, position: { x: 5000, y: 600 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 305, position: { x: 6100, y: 230 }, size: { width: 40, height: 60 }, triggered: false },
 ];
 
 // --- LEVEL 4: AURORA'S GUARDIAN (BOSS LEVEL) ---
@@ -447,6 +561,14 @@ export const getBossLevelPlatforms = (): Platform[] => [
     // Safe alcoves in walls
     { position: { x: 1200, y: 500 }, size: { width: 80, height: 150 }, type: 'block', color: '#64748b' },
     { position: { x: 4620, y: 500 }, size: { width: 80, height: 150 }, type: 'block', color: '#64748b' },
+
+    // Moving platforms for dodging
+    { position: { x: 2100, y: 450 }, size: { width: 100, height: 20 }, type: 'moving', color: '#60a5fa', moveDirection: 'vertical', moveDistance: 120 },
+    { position: { x: 3700, y: 420 }, size: { width: 100, height: 20 }, type: 'moving', color: '#60a5fa', moveDirection: 'vertical', moveDistance: 100 },
+
+    // Spike traps in arena (timed hazards)
+    { position: { x: 2000, y: 620 }, size: { width: 80, height: 30 }, type: 'spike', color: '#ef4444', spikeMaxTimer: 120, spikeActive: false },
+    { position: { x: 3600, y: 620 }, size: { width: 80, height: 30 }, type: 'spike', color: '#ef4444', spikeMaxTimer: 120, spikeActive: true },
 
     // End platform with victory portal
     { position: { x: 5000, y: 600 }, size: { width: 2000, height: 200 }, type: 'ground', color: '#475569' },

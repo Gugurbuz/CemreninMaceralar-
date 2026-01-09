@@ -38,22 +38,34 @@ export interface Player {
 }
 
 export interface Platform {
-  id?: number; // Unique ID for logic linking
+  id?: number;
   position: Vector2;
   size: Size;
-  type: 'ground' | 'block' | 'pipe' | 'finish' | 'ice' | 'slippery' | 'crumbly' | 'door' | 'plate' | 'aurora' | 'leaf' | 'mushroom' | 'totem' | 'cloud';
+  type: 'ground' | 'block' | 'pipe' | 'finish' | 'ice' | 'slippery' | 'crumbly' | 'door' | 'plate' | 'aurora' | 'leaf' | 'mushroom' | 'totem' | 'cloud' | 'moving' | 'spike' | 'timed_button' | 'conveyor' | 'toggle_platform';
   color: string;
-  // State for mechanics
-  isPressed?: boolean; // For plates
-  isOpen?: boolean;    // For doors
-  isFalling?: boolean; // For crumbly platforms
-  fallTimer?: number;  // Ticks before falling
-  maxFallTimer?: number; // To reset the platform
-  respawnTimer?: number; // Ticks before reappearing
-  linkId?: number;     // To link Plate -> Door
-  requiresCoop?: boolean; // For final portals
-  deformation?: number; // For squish animation (0 = normal, negative = squished, positive = stretched)
-  isActive?: boolean; // For Totem (Wind On/Off)
+  isPressed?: boolean;
+  isOpen?: boolean;
+  isFalling?: boolean;
+  fallTimer?: number;
+  maxFallTimer?: number;
+  respawnTimer?: number;
+  linkId?: number;
+  requiresCoop?: boolean;
+  deformation?: number;
+  isActive?: boolean;
+  moveSpeed?: number;
+  moveDistance?: number;
+  moveDirection?: 'horizontal' | 'vertical';
+  originalPosition?: Vector2;
+  movePhase?: number;
+  spikeTimer?: number;
+  spikeMaxTimer?: number;
+  spikeActive?: boolean;
+  buttonTimer?: number;
+  buttonMaxTimer?: number;
+  conveyorSpeed?: number;
+  linkedPlatformIds?: number[];
+  isVisible?: boolean;
 }
 
 export interface Coin {
@@ -80,7 +92,7 @@ export interface Enemy {
   id: number;
   position: Vector2;
   size: Size;
-  type: 'slime' | 'snowman' | 'yeti' | 'bird' | 'boss';
+  type: 'slime' | 'snowman' | 'yeti' | 'bird' | 'boss' | 'shooter' | 'chaser' | 'jumper';
   color: string;
   health?: number;
   maxHealth?: number;
@@ -99,6 +111,14 @@ export interface Enemy {
   dashTarget?: Vector2;
   isDashing?: boolean;
   hitFlash?: number;
+  shootCooldown?: number;
+  shootMaxCooldown?: number;
+  chaseRange?: number;
+  isChasing?: boolean;
+  jumpTimer?: number;
+  jumpMaxTimer?: number;
+  isJumping?: boolean;
+  velocityY?: number;
 }
 
 export interface Checkpoint {

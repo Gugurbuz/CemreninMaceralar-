@@ -760,6 +760,83 @@ export const useGameRenderer = (
                        ctx.stroke();
                   }
               }
+          } else if (plat.type === 'moving') {
+              ctx.fillStyle = '#60a5fa';
+              ctx.fillRect(plat.position.x, plat.position.y, plat.size.width, plat.size.height);
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+              ctx.fillRect(plat.position.x, plat.position.y, plat.size.width, 5);
+              ctx.fillStyle = '#1e40af';
+              const arrowX = plat.position.x + plat.size.width / 2;
+              const arrowY = plat.position.y + plat.size.height / 2;
+              ctx.beginPath();
+              if (plat.moveDirection === 'vertical') {
+                  ctx.moveTo(arrowX, arrowY - 8); ctx.lineTo(arrowX + 6, arrowY); ctx.lineTo(arrowX - 6, arrowY);
+                  ctx.moveTo(arrowX, arrowY + 8); ctx.lineTo(arrowX + 6, arrowY); ctx.lineTo(arrowX - 6, arrowY);
+              } else {
+                  ctx.moveTo(arrowX - 8, arrowY); ctx.lineTo(arrowX, arrowY - 6); ctx.lineTo(arrowX, arrowY + 6);
+                  ctx.moveTo(arrowX + 8, arrowY); ctx.lineTo(arrowX, arrowY - 6); ctx.lineTo(arrowX, arrowY + 6);
+              }
+              ctx.fill();
+          } else if (plat.type === 'spike') {
+              if (plat.spikeActive) {
+                  ctx.fillStyle = '#ef4444';
+                  const spikeCount = Math.floor(plat.size.width / 15);
+                  for (let i = 0; i < spikeCount; i++) {
+                      const sx = plat.position.x + i * 15 + 7.5;
+                      ctx.beginPath();
+                      ctx.moveTo(sx - 6, plat.position.y + plat.size.height);
+                      ctx.lineTo(sx, plat.position.y);
+                      ctx.lineTo(sx + 6, plat.position.y + plat.size.height);
+                      ctx.fill();
+                  }
+              } else {
+                  ctx.fillStyle = '#94a3b8';
+                  ctx.fillRect(plat.position.x, plat.position.y + plat.size.height - 5, plat.size.width, 5);
+              }
+          } else if (plat.type === 'timed_button') {
+              ctx.fillStyle = plat.isPressed ? '#22c55e' : '#fbbf24';
+              ctx.fillRect(plat.position.x, plat.position.y, plat.size.width, plat.size.height);
+              ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+              ctx.fillRect(plat.position.x, plat.position.y + plat.size.height - 3, plat.size.width, 3);
+              if (plat.isPressed && plat.buttonTimer !== undefined && plat.buttonMaxTimer) {
+                  const pct = plat.buttonTimer / plat.buttonMaxTimer;
+                  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                  ctx.fillRect(plat.position.x + 2, plat.position.y + 2, (plat.size.width - 4) * pct, 4);
+              }
+          } else if (plat.type === 'conveyor') {
+              ctx.fillStyle = '#475569';
+              ctx.fillRect(plat.position.x, plat.position.y, plat.size.width, plat.size.height);
+              ctx.fillStyle = '#fbbf24';
+              const offset = (gameState.current.globalTime * 2) % 20;
+              const dir = (plat.conveyorSpeed || 3) > 0 ? 1 : -1;
+              for (let i = 0; i < plat.size.width; i += 20) {
+                  const ax = plat.position.x + i + offset * dir;
+                  if (ax >= plat.position.x && ax <= plat.position.x + plat.size.width - 10) {
+                      ctx.beginPath();
+                      ctx.moveTo(ax, plat.position.y + 5);
+                      ctx.lineTo(ax + 5 * dir, plat.position.y + plat.size.height / 2);
+                      ctx.lineTo(ax, plat.position.y + plat.size.height - 5);
+                      ctx.fill();
+                  }
+              }
+          } else if (plat.type === 'toggle_platform') {
+              if (plat.isVisible) {
+                  ctx.fillStyle = '#a855f7';
+                  ctx.globalAlpha = 0.8 + Math.sin(gameState.current.globalTime * 0.1) * 0.2;
+                  ctx.fillRect(plat.position.x, plat.position.y, plat.size.width, plat.size.height);
+                  ctx.globalAlpha = 1.0;
+                  ctx.strokeStyle = '#7c3aed';
+                  ctx.lineWidth = 2;
+                  ctx.strokeRect(plat.position.x, plat.position.y, plat.size.width, plat.size.height);
+              } else {
+                  ctx.globalAlpha = 0.2;
+                  ctx.fillStyle = '#a855f7';
+                  ctx.setLineDash([5, 5]);
+                  ctx.strokeStyle = '#a855f7';
+                  ctx.strokeRect(plat.position.x, plat.position.y, plat.size.width, plat.size.height);
+                  ctx.setLineDash([]);
+                  ctx.globalAlpha = 1.0;
+              }
           } else {
               ctx.fillRect(plat.position.x, plat.position.y, plat.size.width, plat.size.height);
           }
@@ -903,6 +980,58 @@ export const useGameRenderer = (
                 ctx.fillStyle = 'black';
                 const pupilX = facingRight ? eyeX + 1.5 : eyeX - 1.5;
                 ctx.beginPath(); ctx.arc(pupilX, y + 8, 2, 0, Math.PI*2); ctx.fill();
+            } else if (enemy.type === 'shooter') {
+                ctx.fillStyle = '#dc2626';
+                ctx.fillRect(x, y, enemy.size.width, enemy.size.height);
+                ctx.fillStyle = '#991b1b';
+                ctx.fillRect(x + 5, y + 5, enemy.size.width - 10, 10);
+                const gunDir = (enemy.direction || 1);
+                ctx.fillStyle = '#1e293b';
+                const gunX = gunDir === 1 ? x + enemy.size.width - 5 : x - 10;
+                ctx.fillRect(gunX, y + enemy.size.height / 2 - 5, 15, 10);
+                ctx.fillStyle = 'white';
+                const shooterEyeX = gunDir === 1 ? x + enemy.size.width * 0.7 : x + enemy.size.width * 0.3;
+                ctx.beginPath(); ctx.arc(shooterEyeX, y + 15, 4, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath(); ctx.arc(shooterEyeX, y + 15, 2, 0, Math.PI*2); ctx.fill();
+            } else if (enemy.type === 'chaser') {
+                const chaserColor = enemy.isChasing ? '#ef4444' : '#f97316';
+                ctx.fillStyle = chaserColor;
+                ctx.beginPath();
+                ctx.arc(x + enemy.size.width/2, y + enemy.size.height/2, enemy.size.width/2, 0, Math.PI*2);
+                ctx.fill();
+                ctx.fillStyle = '#fff';
+                const chaserEyeOffset = (enemy.direction || 1) === 1 ? 5 : -5;
+                ctx.beginPath(); ctx.arc(x + enemy.size.width/2 - 8 + chaserEyeOffset, y + enemy.size.height/2 - 5, 5, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + enemy.size.width/2 + 8 + chaserEyeOffset, y + enemy.size.height/2 - 5, 5, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = enemy.isChasing ? '#dc2626' : '#000';
+                ctx.beginPath(); ctx.arc(x + enemy.size.width/2 - 8 + chaserEyeOffset * 1.5, y + enemy.size.height/2 - 5, 2, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + enemy.size.width/2 + 8 + chaserEyeOffset * 1.5, y + enemy.size.height/2 - 5, 2, 0, Math.PI*2); ctx.fill();
+                if (enemy.isChasing) {
+                    ctx.strokeStyle = '#ef4444';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(x + enemy.size.width/2, y + enemy.size.height/2, enemy.size.width/2 + 5 + Math.sin(gameState.current.globalTime * 0.3) * 3, 0, Math.PI*2);
+                    ctx.stroke();
+                }
+            } else if (enemy.type === 'jumper') {
+                const squash = enemy.isJumping ? 0.8 : 1;
+                const stretch = enemy.isJumping ? 1.2 : 1;
+                ctx.save();
+                ctx.translate(x + enemy.size.width/2, y + enemy.size.height);
+                ctx.scale(squash, stretch);
+                ctx.translate(-(x + enemy.size.width/2), -(y + enemy.size.height));
+                ctx.fillStyle = '#22c55e';
+                ctx.fillRect(x, y, enemy.size.width, enemy.size.height);
+                ctx.fillStyle = '#166534';
+                ctx.fillRect(x, y + enemy.size.height - 10, enemy.size.width, 10);
+                ctx.fillStyle = 'white';
+                ctx.beginPath(); ctx.arc(x + enemy.size.width * 0.3, y + 12, 5, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + enemy.size.width * 0.7, y + 12, 5, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.beginPath(); ctx.arc(x + enemy.size.width * 0.3, y + 12, 2, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + enemy.size.width * 0.7, y + 12, 2, 0, Math.PI*2); ctx.fill();
+                ctx.restore();
             } else if (enemy.type === 'boss') {
                 const pulse = Math.sin(gameState.current.globalTime * 0.15) * 3;
                 const hitFlashActive = enemy.hitFlash && enemy.hitFlash > 0;
