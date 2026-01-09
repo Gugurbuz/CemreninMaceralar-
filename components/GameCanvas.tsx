@@ -166,6 +166,10 @@ export const GameCanvas: React.FC = () => {
     }
   }, [unlockedAchievements]);
 
+  const handleDismissAchievement = useCallback(() => {
+    setCurrentAchievement(null);
+  }, []);
+
   // Sync UI with Engine (The "Snapshot" Pattern)
   useEffect(() => {
       if (gameStatus !== 'playing') return;
@@ -1029,7 +1033,7 @@ export const GameCanvas: React.FC = () => {
         {/* Achievement Notification */}
         <AchievementNotification
           achievement={currentAchievement}
-          onDismiss={() => setCurrentAchievement(null)}
+          onDismiss={handleDismissAchievement}
         />
 
         {/* Leaderboard Modal */}
