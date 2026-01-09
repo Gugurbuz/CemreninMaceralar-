@@ -126,9 +126,46 @@ export const GameCanvas: React.FC = () => {
   // --- HOOKS ---
   // Pass playing state to only block keys when playing
   const { inputs, setInput } = useGameInput(gameStatus === 'playing');
-  
+
   const { renderStaticBackground, draw } = useGameRenderer(gameState, particles, effectParticles);
-  
+
+  // Define helper functions BEFORE useEffect hooks that use them
+  const loadUnlockedAchievements = useCallback(async () => {
+    const unlocked = await dbServiceRef.current.getUnlockedAchievements();
+    setUnlockedAchievements(unlocked);
+  }, []);
+
+  const checkAchievements = useCallback(async () => {
+    const gs = gameState.current;
+    const tracker = achievementTrackerRef.current;
+
+    tracker.updateStats({
+      score: gs.score,
+      level: gs.level,
+      coinsCollected: gs.coinsCollected,
+      enemiesDefeated: gs.enemiesDefeated,
+      timeSeconds: Math.floor(gs.globalTime / 60),
+      deathCount: gs.deathCount,
+      gameMode: gs.gameMode,
+      character: gs.gameMode === 'solo' ? (gs.players[0]?.id as 'cemre' | 'baba') : 'both',
+      perfectJumps: gs.perfectJumps,
+      powerUpsUsed: gs.powerUpsUsed,
+    });
+
+    const newAchievements = tracker.checkAchievements();
+
+    for (const achievement of newAchievements) {
+      if (!unlockedAchievements.includes(achievement.id)) {
+        const success = await dbServiceRef.current.unlockAchievement(achievement);
+        if (success) {
+          setCurrentAchievement(achievement);
+          setUnlockedAchievements(prev => [...prev, achievement.id]);
+          soundManager.playWin();
+        }
+      }
+    }
+  }, [unlockedAchievements]);
+
   // Sync UI with Engine (The "Snapshot" Pattern)
   useEffect(() => {
       if (gameStatus !== 'playing') return;
@@ -177,43 +214,7 @@ export const GameCanvas: React.FC = () => {
 
       // Load unlocked achievements
       loadUnlockedAchievements();
-  }, []);
-
-  const loadUnlockedAchievements = async () => {
-    const unlocked = await dbServiceRef.current.getUnlockedAchievements();
-    setUnlockedAchievements(unlocked);
-  };
-
-  const checkAchievements = useCallback(async () => {
-    const gs = gameState.current;
-    const tracker = achievementTrackerRef.current;
-
-    tracker.updateStats({
-      score: gs.score,
-      level: gs.level,
-      coinsCollected: gs.coinsCollected,
-      enemiesDefeated: gs.enemiesDefeated,
-      timeSeconds: Math.floor(gs.globalTime / 60),
-      deathCount: gs.deathCount,
-      gameMode: gs.gameMode,
-      character: gs.gameMode === 'solo' ? (gs.players[0]?.id as 'cemre' | 'baba') : 'both',
-      perfectJumps: gs.perfectJumps,
-      powerUpsUsed: gs.powerUpsUsed,
-    });
-
-    const newAchievements = tracker.checkAchievements();
-
-    for (const achievement of newAchievements) {
-      if (!unlockedAchievements.includes(achievement.id)) {
-        const success = await dbServiceRef.current.unlockAchievement(achievement);
-        if (success) {
-          setCurrentAchievement(achievement);
-          setUnlockedAchievements(prev => [...prev, achievement.id]);
-          soundManager.playWin();
-        }
-      }
-    }
-  }, [unlockedAchievements]);
+  }, [loadUnlockedAchievements]);
 
   // Cleanup dialogs on unmount
   useEffect(() => {
