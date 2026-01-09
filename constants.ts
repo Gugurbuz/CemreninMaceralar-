@@ -19,7 +19,7 @@ export const JUMP_BUFFER = 8; // Frames to remember jump press before hitting gr
 export const LEVEL_1_WIDTH = 16000;
 export const LEVEL_2_WIDTH = 17000;
 export const LEVEL_3_WIDTH = 7500;
-export const LEVEL_4_WIDTH = 16000;
+export const LEVEL_4_WIDTH = 10000;
 
 export const INITIAL_RESPAWN_POINT = { x: 100, y: 300 };
 
@@ -535,102 +535,54 @@ export const getBossLevelPlatforms = (): Platform[] => [
     // Temple entrance
     { position: { x: -200, y: 600 }, size: { width: 1000, height: 200 }, type: 'ground', color: '#475569' },
 
-    // === BOSS ARENA 1 ===
     // Preparation zone platform
     { position: { x: 900, y: 550 }, size: { width: 150, height: 20 }, type: 'block', color: '#94a3b8' },
 
-    // Boss 1 arena floor
-    { position: { x: 1200, y: 650 }, size: { width: 2500, height: 150 }, type: 'ground', color: '#64748b' },
+    // Main arena floor - expanded
+    { position: { x: 1200, y: 650 }, size: { width: 3500, height: 150 }, type: 'ground', color: '#64748b' },
 
-    // Boss 1 arena platforms - Left zone
+    // Left zone - dodging platforms
     { position: { x: 1400, y: 500 }, size: { width: 180, height: 20 }, type: 'block', color: '#94a3b8' },
     { position: { x: 1650, y: 380 }, size: { width: 180, height: 20 }, type: 'block', color: '#94a3b8' },
     { position: { x: 1400, y: 260 }, size: { width: 180, height: 20 }, type: 'crumbly', color: '#94a3b8', isFalling: false, fallTimer: 60, maxFallTimer: 60, respawnTimer: 0 },
 
-    // Boss 1 arena - Center zone tactical mushrooms
+    // Center zone - tactical mushrooms
     { position: { x: 2300, y: 570 }, size: { width: 120, height: 80 }, type: 'mushroom', color: '#60a5fa', deformation: 0 },
+    { position: { x: 2650, y: 570 }, size: { width: 120, height: 80 }, type: 'mushroom', color: '#60a5fa', deformation: 0 },
     { position: { x: 2475, y: 400 }, size: { width: 150, height: 20 }, type: 'block', color: '#94a3b8' },
     { position: { x: 2475, y: 250 }, size: { width: 150, height: 20 }, type: 'cloud', color: '#e0f2fe' },
 
-    // Boss 1 arena - hazards
+    // Right zone - high platforms for crystals
+    { position: { x: 3100, y: 500 }, size: { width: 180, height: 20 }, type: 'block', color: '#94a3b8' },
+    { position: { x: 3350, y: 350 }, size: { width: 180, height: 20 }, type: 'block', color: '#94a3b8' },
+    { position: { x: 3650, y: 480 }, size: { width: 180, height: 20 }, type: 'leaf', color: '#86efac' },
+    { position: { x: 4000, y: 350 }, size: { width: 180, height: 20 }, type: 'crumbly', color: '#94a3b8', isFalling: false, fallTimer: 60, maxFallTimer: 60, respawnTimer: 0 },
+
+    // Ice hazard zones
     { position: { x: 1900, y: 600 }, size: { width: 200, height: 50 }, type: 'ice', color: '#93c5fd' },
-    { position: { x: 2000, y: 620 }, size: { width: 80, height: 30 }, type: 'spike', color: '#ef4444', spikeMaxTimer: 120, spikeActive: false },
+    { position: { x: 3400, y: 600 }, size: { width: 200, height: 50 }, type: 'ice', color: '#93c5fd' },
 
-    // Safe alcove
+    // Safe alcoves in walls
     { position: { x: 1200, y: 500 }, size: { width: 80, height: 150 }, type: 'block', color: '#64748b' },
+    { position: { x: 4620, y: 500 }, size: { width: 80, height: 150 }, type: 'block', color: '#64748b' },
 
-    // Moving platform
+    // Moving platforms for dodging
     { position: { x: 2100, y: 450 }, size: { width: 100, height: 20 }, type: 'moving', color: '#60a5fa', moveDirection: 'vertical', moveDistance: 120 },
+    { position: { x: 3700, y: 420 }, size: { width: 100, height: 20 }, type: 'moving', color: '#60a5fa', moveDirection: 'vertical', moveDistance: 100 },
 
-    // === TRANSITION ZONE 1 ===
-    { position: { x: 3800, y: 650 }, size: { width: 800, height: 150 }, type: 'ground', color: '#64748b' },
-    { position: { x: 4100, y: 500 }, size: { width: 150, height: 20 }, type: 'block', color: '#94a3b8' },
-    { position: { x: 4350, y: 380 }, size: { width: 150, height: 20 }, type: 'block', color: '#94a3b8' },
-    { position: { x: 4100, y: 300 }, size: { width: 150, height: 20 }, type: 'cloud', color: '#e0f2fe' },
+    // Spike traps in arena (timed hazards)
+    { position: { x: 2000, y: 620 }, size: { width: 80, height: 30 }, type: 'spike', color: '#ef4444', spikeMaxTimer: 120, spikeActive: false },
+    { position: { x: 3600, y: 620 }, size: { width: 80, height: 30 }, type: 'spike', color: '#ef4444', spikeMaxTimer: 120, spikeActive: true },
 
-    // === BOSS ARENA 2 ===
-    // Boss 2 arena floor
-    { position: { x: 5200, y: 650 }, size: { width: 2500, height: 150 }, type: 'ground', color: '#64748b' },
-
-    // Boss 2 arena platforms - Left zone
-    { position: { x: 5400, y: 500 }, size: { width: 180, height: 20 }, type: 'block', color: '#94a3b8' },
-    { position: { x: 5650, y: 360 }, size: { width: 180, height: 20 }, type: 'block', color: '#94a3b8' },
-    { position: { x: 5400, y: 220 }, size: { width: 180, height: 20 }, type: 'crumbly', color: '#94a3b8', isFalling: false, fallTimer: 60, maxFallTimer: 60, respawnTimer: 0 },
-
-    // Boss 2 arena - Center zone
-    { position: { x: 6300, y: 570 }, size: { width: 120, height: 80 }, type: 'mushroom', color: '#60a5fa', deformation: 0 },
-    { position: { x: 6475, y: 400 }, size: { width: 150, height: 20 }, type: 'block', color: '#94a3b8' },
-    { position: { x: 6475, y: 250 }, size: { width: 150, height: 20 }, type: 'cloud', color: '#e0f2fe' },
-
-    // Boss 2 arena - Right zone
-    { position: { x: 7100, y: 500 }, size: { width: 180, height: 20 }, type: 'block', color: '#94a3b8' },
-    { position: { x: 7350, y: 350 }, size: { width: 180, height: 20 }, type: 'leaf', color: '#86efac' },
-
-    // Boss 2 arena - hazards
-    { position: { x: 5900, y: 600 }, size: { width: 200, height: 50 }, type: 'ice', color: '#93c5fd' },
-    { position: { x: 7000, y: 620 }, size: { width: 80, height: 30 }, type: 'spike', color: '#ef4444', spikeMaxTimer: 120, spikeActive: true },
-    { position: { x: 6100, y: 450 }, size: { width: 100, height: 20 }, type: 'moving', color: '#60a5fa', moveDirection: 'vertical', moveDistance: 120 },
-
-    // === TRANSITION ZONE 2 ===
-    { position: { x: 7900, y: 650 }, size: { width: 800, height: 150 }, type: 'ground', color: '#64748b' },
-    { position: { x: 8100, y: 500 }, size: { width: 150, height: 20 }, type: 'block', color: '#94a3b8' },
-    { position: { x: 8350, y: 380 }, size: { width: 150, height: 20 }, type: 'block', color: '#94a3b8' },
-
-    // === BOSS ARENA 3 (Final) ===
-    // Boss 3 arena floor
-    { position: { x: 9200, y: 650 }, size: { width: 2500, height: 150 }, type: 'ground', color: '#64748b' },
-
-    // Boss 3 arena platforms
-    { position: { x: 9400, y: 500 }, size: { width: 180, height: 20 }, type: 'block', color: '#94a3b8' },
-    { position: { x: 9650, y: 380 }, size: { width: 180, height: 20 }, type: 'block', color: '#94a3b8' },
-    { position: { x: 9400, y: 260 }, size: { width: 180, height: 20 }, type: 'crumbly', color: '#94a3b8', isFalling: false, fallTimer: 60, maxFallTimer: 60, respawnTimer: 0 },
-
-    // Boss 3 arena - Center dual mushrooms
-    { position: { x: 10300, y: 570 }, size: { width: 120, height: 80 }, type: 'mushroom', color: '#60a5fa', deformation: 0 },
-    { position: { x: 10650, y: 570 }, size: { width: 120, height: 80 }, type: 'mushroom', color: '#60a5fa', deformation: 0 },
-    { position: { x: 10475, y: 400 }, size: { width: 150, height: 20 }, type: 'block', color: '#94a3b8' },
-    { position: { x: 10475, y: 250 }, size: { width: 150, height: 20 }, type: 'cloud', color: '#e0f2fe' },
-
-    // Boss 3 arena - hazards (more challenging)
-    { position: { x: 9900, y: 600 }, size: { width: 200, height: 50 }, type: 'ice', color: '#93c5fd' },
-    { position: { x: 10600, y: 600 }, size: { width: 200, height: 50 }, type: 'ice', color: '#93c5fd' },
-    { position: { x: 10000, y: 620 }, size: { width: 80, height: 30 }, type: 'spike', color: '#ef4444', spikeMaxTimer: 120, spikeActive: false },
-    { position: { x: 10700, y: 620 }, size: { width: 80, height: 30 }, type: 'spike', color: '#ef4444', spikeMaxTimer: 120, spikeActive: true },
-
-    // Boss 3 arena - moving platforms
-    { position: { x: 10100, y: 450 }, size: { width: 100, height: 20 }, type: 'moving', color: '#60a5fa', moveDirection: 'vertical', moveDistance: 120 },
-    { position: { x: 10700, y: 420 }, size: { width: 100, height: 20 }, type: 'moving', color: '#60a5fa', moveDirection: 'vertical', moveDistance: 100 },
-
-    // === VICTORY ZONE ===
-    { position: { x: 12000, y: 600 }, size: { width: 2000, height: 200 }, type: 'ground', color: '#475569' },
-    { position: { x: 12700, y: 450 }, size: { width: 150, height: 150 }, type: 'aurora', color: 'transparent', requiresCoop: true },
+    // End platform with victory portal
+    { position: { x: 5000, y: 600 }, size: { width: 2000, height: 200 }, type: 'ground', color: '#475569' },
+    { position: { x: 5700, y: 450 }, size: { width: 150, height: 150 }, type: 'aurora', color: 'transparent', requiresCoop: true },
 
     // Arena walls
-    { position: { x: 14200, y: -200 }, size: { width: 100, height: 1000 }, type: 'ground', color: '#64748b' },
+    { position: { x: 7000, y: -200 }, size: { width: 100, height: 1000 }, type: 'ground', color: '#64748b' },
 ];
 
 export const getBossLevelCoins = (): Coin[] => [
-    // Boss 1 Arena coins
     { id: 401, position: { x: 1450, y: 450 }, size: 14, collected: false, baseY: 450, type: 'hot-chocolate' },
     { id: 402, position: { x: 1700, y: 330 }, size: 14, collected: false, baseY: 330, type: 'hot-chocolate' },
     { id: 403, position: { x: 1450, y: 210 }, size: 14, collected: false, baseY: 210, type: 'gold' },
@@ -638,52 +590,25 @@ export const getBossLevelCoins = (): Coin[] => [
     { id: 405, position: { x: 2700, y: 470 }, size: 14, collected: false, baseY: 470, type: 'gold' },
     { id: 406, position: { x: 2525, y: 350 }, size: 14, collected: false, baseY: 350, type: 'hot-chocolate' },
     { id: 407, position: { x: 2525, y: 200 }, size: 14, collected: false, baseY: 200, type: 'gold' },
-
-    // Transition 1 coins
-    { id: 408, position: { x: 4100, y: 450 }, size: 14, collected: false, baseY: 450, type: 'gold' },
-    { id: 409, position: { x: 4350, y: 330 }, size: 14, collected: false, baseY: 330, type: 'gold' },
-
-    // Boss 2 Arena coins
-    { id: 410, position: { x: 5450, y: 450 }, size: 14, collected: false, baseY: 450, type: 'hot-chocolate' },
-    { id: 411, position: { x: 5700, y: 310 }, size: 14, collected: false, baseY: 310, type: 'hot-chocolate' },
-    { id: 412, position: { x: 5450, y: 170 }, size: 14, collected: false, baseY: 170, type: 'gold' },
-    { id: 413, position: { x: 6350, y: 470 }, size: 14, collected: false, baseY: 470, type: 'gold' },
-    { id: 414, position: { x: 6700, y: 470 }, size: 14, collected: false, baseY: 470, type: 'gold' },
-    { id: 415, position: { x: 6475, y: 350 }, size: 14, collected: false, baseY: 350, type: 'hot-chocolate' },
-    { id: 416, position: { x: 6475, y: 200 }, size: 14, collected: false, baseY: 200, type: 'gold' },
-    { id: 417, position: { x: 7150, y: 450 }, size: 14, collected: false, baseY: 450, type: 'gold' },
-
-    // Transition 2 coins
-    { id: 418, position: { x: 8100, y: 450 }, size: 14, collected: false, baseY: 450, type: 'gold' },
-    { id: 419, position: { x: 8350, y: 330 }, size: 14, collected: false, baseY: 330, type: 'gold' },
-
-    // Boss 3 Arena coins
-    { id: 420, position: { x: 9450, y: 450 }, size: 14, collected: false, baseY: 450, type: 'hot-chocolate' },
-    { id: 421, position: { x: 9700, y: 330 }, size: 14, collected: false, baseY: 330, type: 'hot-chocolate' },
-    { id: 422, position: { x: 9450, y: 210 }, size: 14, collected: false, baseY: 210, type: 'gold' },
-    { id: 423, position: { x: 10350, y: 470 }, size: 14, collected: false, baseY: 470, type: 'gold' },
-    { id: 424, position: { x: 10700, y: 470 }, size: 14, collected: false, baseY: 470, type: 'gold' },
-    { id: 425, position: { x: 10475, y: 350 }, size: 14, collected: false, baseY: 350, type: 'hot-chocolate' },
-    { id: 426, position: { x: 10475, y: 200 }, size: 14, collected: false, baseY: 200, type: 'gold' },
-    { id: 427, position: { x: 11150, y: 450 }, size: 14, collected: false, baseY: 450, type: 'gold' },
-
-    // Victory zone coins
-    { id: 428, position: { x: 12200, y: 500 }, size: 14, collected: false, baseY: 500, type: 'kanelbulle' },
-    { id: 429, position: { x: 12400, y: 500 }, size: 14, collected: false, baseY: 500, type: 'kanelbulle' },
-    { id: 430, position: { x: 12600, y: 500 }, size: 14, collected: false, baseY: 500, type: 'kanelbulle' },
-    { id: 431, position: { x: 12800, y: 500 }, size: 14, collected: false, baseY: 500, type: 'hot-chocolate' },
+    { id: 408, position: { x: 3150, y: 450 }, size: 14, collected: false, baseY: 450, type: 'gold' },
+    { id: 409, position: { x: 3400, y: 300 }, size: 14, collected: false, baseY: 300, type: 'hot-chocolate' },
+    { id: 410, position: { x: 3700, y: 430 }, size: 14, collected: false, baseY: 430, type: 'gold' },
+    { id: 411, position: { x: 4050, y: 300 }, size: 14, collected: false, baseY: 300, type: 'gold' },
+    { id: 412, position: { x: 5500, y: 500 }, size: 14, collected: false, baseY: 500, type: 'kanelbulle' },
+    { id: 413, position: { x: 5700, y: 500 }, size: 14, collected: false, baseY: 500, type: 'kanelbulle' },
+    { id: 414, position: { x: 5900, y: 500 }, size: 14, collected: false, baseY: 500, type: 'kanelbulle' },
+    { id: 415, position: { x: 6100, y: 500 }, size: 14, collected: false, baseY: 500, type: 'hot-chocolate' },
 ];
 
 export const getBossLevelEnemies = (): Enemy[] => [
-    // Boss 1 - Aurora Guardian Phase 1
     {
         id: 999,
-        position: { x: 2300, y: 400 },
+        position: { x: 2800, y: 400 },
         size: { width: 150, height: 200 },
         type: 'boss',
         color: '#94a3b8',
-        health: 10,
-        maxHealth: 10,
+        health: 12,
+        maxHealth: 12,
         phase: 1,
         attackTimer: 0,
         attackCooldown: 0,
@@ -691,57 +616,9 @@ export const getBossLevelEnemies = (): Enemy[] => [
         attackType: 'slam',
         isInvincible: false,
         shieldActive: false,
-        originalX: 2300,
-        patrolDistance: 400,
-        speed: 1.5,
-        direction: 1,
-        isDashing: false,
-        hitFlash: 0
-    },
-
-    // Boss 2 - Aurora Guardian Phase 2
-    {
-        id: 1000,
-        position: { x: 6300, y: 400 },
-        size: { width: 150, height: 200 },
-        type: 'boss',
-        color: '#f59e0b',
-        health: 12,
-        maxHealth: 12,
-        phase: 2,
-        attackTimer: 0,
-        attackCooldown: 0,
-        isAttacking: false,
-        attackType: 'slam',
-        isInvincible: false,
-        shieldActive: false,
-        originalX: 6300,
-        patrolDistance: 450,
-        speed: 1.7,
-        direction: 1,
-        isDashing: false,
-        hitFlash: 0
-    },
-
-    // Boss 3 - Aurora Guardian Phase 3 (Final)
-    {
-        id: 1001,
-        position: { x: 10300, y: 400 },
-        size: { width: 150, height: 200 },
-        type: 'boss',
-        color: '#a855f7',
-        health: 15,
-        maxHealth: 15,
-        phase: 3,
-        attackTimer: 0,
-        attackCooldown: 0,
-        isAttacking: false,
-        attackType: 'slam',
-        isInvincible: false,
-        shieldActive: false,
-        originalX: 10300,
+        originalX: 2800,
         patrolDistance: 500,
-        speed: 1.9,
+        speed: 1.5,
         direction: 1,
         isDashing: false,
         hitFlash: 0
@@ -750,35 +627,17 @@ export const getBossLevelEnemies = (): Enemy[] => [
 
 export const getBossLevelCheckpoints = (): Checkpoint[] => [
     { id: 401, position: { x: 950, y: 490 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 402, position: { x: 3900, y: 590 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 403, position: { x: 7900, y: 590 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 404, position: { x: 11900, y: 590 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 402, position: { x: 4500, y: 590 }, size: { width: 40, height: 60 }, triggered: false },
 ];
 
 export const getBossLevelPowerUps = (): import('./types').PowerUp[] => [
-    // Boss 1 Arena power-ups
     { id: 1, position: { x: 1240, y: 470 }, size: { width: 30, height: 30 }, type: 'shield', collected: false, baseY: 470, duration: 360 },
+    { id: 2, position: { x: 4660, y: 470 }, size: { width: 30, height: 30 }, type: 'shield', collected: false, baseY: 470, duration: 360 },
     { id: 3, position: { x: 2475, y: 370 }, size: { width: 30, height: 30 }, type: 'double_jump', collected: false, baseY: 370, duration: 420 },
     { id: 4, position: { x: 2525, y: 220 }, size: { width: 30, height: 30 }, type: 'star', collected: false, baseY: 220, duration: 240 },
-
-    // Transition 1 power-ups
-    { id: 5, position: { x: 4100, y: 420 }, size: { width: 30, height: 30 }, type: 'speed', collected: false, baseY: 420, duration: 300 },
-
-    // Boss 2 Arena power-ups
-    { id: 6, position: { x: 5240, y: 470 }, size: { width: 30, height: 30 }, type: 'shield', collected: false, baseY: 470, duration: 360 },
-    { id: 7, position: { x: 6350, y: 370 }, size: { width: 30, height: 30 }, type: 'ice_throw', collected: false, baseY: 370, duration: 600 },
-    { id: 8, position: { x: 6475, y: 220 }, size: { width: 30, height: 30 }, type: 'star', collected: false, baseY: 220, duration: 240 },
-    { id: 9, position: { x: 7200, y: 320 }, size: { width: 30, height: 30 }, type: 'double_jump', collected: false, baseY: 320, duration: 420 },
-
-    // Transition 2 power-ups
-    { id: 10, position: { x: 8100, y: 420 }, size: { width: 30, height: 30 }, type: 'speed', collected: false, baseY: 420, duration: 300 },
-
-    // Boss 3 Arena power-ups (Most challenging)
-    { id: 11, position: { x: 9240, y: 470 }, size: { width: 30, height: 30 }, type: 'shield', collected: false, baseY: 470, duration: 360 },
-    { id: 12, position: { x: 10350, y: 370 }, size: { width: 30, height: 30 }, type: 'giant', collected: false, baseY: 370, duration: 480 },
-    { id: 13, position: { x: 10475, y: 220 }, size: { width: 30, height: 30 }, type: 'star', collected: false, baseY: 220, duration: 240 },
-    { id: 14, position: { x: 11200, y: 320 }, size: { width: 30, height: 30 }, type: 'ice_throw', collected: false, baseY: 320, duration: 600 },
-    { id: 15, position: { x: 11600, y: 400 }, size: { width: 30, height: 30 }, type: 'speed', collected: false, baseY: 400, duration: 300 },
+    { id: 5, position: { x: 3400, y: 320 }, size: { width: 30, height: 30 }, type: 'speed', collected: false, baseY: 320, duration: 300 },
+    { id: 6, position: { x: 3700, y: 400 }, size: { width: 30, height: 30 }, type: 'ice_throw', collected: false, baseY: 400, duration: 600 },
+    { id: 7, position: { x: 4200, y: 320 }, size: { width: 30, height: 30 }, type: 'giant', collected: false, baseY: 320, duration: 480 },
 ];
 
 export const getWinterPowerUps = (): import('./types').PowerUp[] => [
