@@ -32,7 +32,7 @@ export const getInitialPlayers = (startingLives: number = 3): Player[] => [
     size: { width: 30, height: 45 },
     baseSize: { width: 30, height: 45 },
     scale: { x: 1, y: 1 },
-    color: '#FF69B4', // Hot Pink
+    color: '#FF69B4',
     isGrounded: false,
     jumpForce: -16.0,
     moveSpeed: 1.3,
@@ -44,6 +44,8 @@ export const getInitialPlayers = (startingLives: number = 3): Player[] => [
     invincibleTimer: 0,
     activePowerUps: [],
     hasDoubleJump: false,
+    deathProtection: false,
+    iceThrowCooldown: 0,
     coyoteTimer: 0,
     jumpBufferTimer: 0,
     mushroomCooldown: 0,
@@ -57,7 +59,7 @@ export const getInitialPlayers = (startingLives: number = 3): Player[] => [
     size: { width: 45, height: 65 },
     baseSize: { width: 45, height: 65 },
     scale: { x: 1, y: 1 },
-    color: '#1E90FF', // Dodger Blue
+    color: '#1E90FF',
     isGrounded: false,
     jumpForce: -15.5,
     moveSpeed: 1.25,
@@ -69,6 +71,8 @@ export const getInitialPlayers = (startingLives: number = 3): Player[] => [
     invincibleTimer: 0,
     activePowerUps: [],
     hasDoubleJump: false,
+    deathProtection: false,
+    iceThrowCooldown: 0,
     coyoteTimer: 0,
     jumpBufferTimer: 0,
     mushroomCooldown: 0,
@@ -632,4 +636,33 @@ export const getBossLevelPowerUps = (): import('./types').PowerUp[] => [
     { id: 3, position: { x: 2475, y: 370 }, size: { width: 30, height: 30 }, type: 'double_jump', collected: false, baseY: 370, duration: 420 },
     { id: 4, position: { x: 2525, y: 220 }, size: { width: 30, height: 30 }, type: 'star', collected: false, baseY: 220, duration: 240 },
     { id: 5, position: { x: 3400, y: 320 }, size: { width: 30, height: 30 }, type: 'speed', collected: false, baseY: 320, duration: 300 },
+    { id: 6, position: { x: 3700, y: 400 }, size: { width: 30, height: 30 }, type: 'ice_throw', collected: false, baseY: 400, duration: 600 },
+    { id: 7, position: { x: 4200, y: 320 }, size: { width: 30, height: 30 }, type: 'giant', collected: false, baseY: 320, duration: 480 },
+];
+
+export const getWinterPowerUps = (): import('./types').PowerUp[] => [
+    { id: 101, position: { x: 2300, y: 440 }, size: { width: 30, height: 30 }, type: 'ice_throw', collected: false, baseY: 440, duration: 600 },
+    { id: 102, position: { x: 4500, y: 540 }, size: { width: 30, height: 30 }, type: 'shield', collected: false, baseY: 540, duration: 360 },
+    { id: 103, position: { x: 6500, y: 440 }, size: { width: 30, height: 30 }, type: 'giant', collected: false, baseY: 440, duration: 480 },
+    { id: 104, position: { x: 8300, y: 140 }, size: { width: 30, height: 30 }, type: 'ice_throw', collected: false, baseY: 140, duration: 600 },
+    { id: 105, position: { x: 10500, y: 140 }, size: { width: 30, height: 30 }, type: 'star', collected: false, baseY: 140, duration: 300 },
+    { id: 106, position: { x: 12000, y: 90 }, size: { width: 30, height: 30 }, type: 'shield', collected: false, baseY: 90, duration: 360 },
+    { id: 107, position: { x: 14000, y: 290 }, size: { width: 30, height: 30 }, type: 'giant', collected: false, baseY: 290, duration: 480 },
+];
+
+export const getButterflyPowerUps = (): import('./types').PowerUp[] => [
+    { id: 201, position: { x: 2200, y: 440 }, size: { width: 30, height: 30 }, type: 'ice_throw', collected: false, baseY: 440, duration: 600 },
+    { id: 202, position: { x: 4000, y: 340 }, size: { width: 30, height: 30 }, type: 'double_jump', collected: false, baseY: 340, duration: 420 },
+    { id: 203, position: { x: 6500, y: 390 }, size: { width: 30, height: 30 }, type: 'giant', collected: false, baseY: 390, duration: 480 },
+    { id: 204, position: { x: 9000, y: 440 }, size: { width: 30, height: 30 }, type: 'shield', collected: false, baseY: 440, duration: 360 },
+    { id: 205, position: { x: 11500, y: 490 }, size: { width: 30, height: 30 }, type: 'ice_throw', collected: false, baseY: 490, duration: 600 },
+    { id: 206, position: { x: 13500, y: 340 }, size: { width: 30, height: 30 }, type: 'star', collected: false, baseY: 340, duration: 300 },
+    { id: 207, position: { x: 15000, y: 440 }, size: { width: 30, height: 30 }, type: 'giant', collected: false, baseY: 440, duration: 480 },
+];
+
+export const getFruitParadisePowerUps = (): import('./types').PowerUp[] => [
+    { id: 301, position: { x: 2000, y: 540 }, size: { width: 30, height: 30 }, type: 'giant', collected: false, baseY: 540, duration: 600 },
+    { id: 302, position: { x: 3500, y: 390 }, size: { width: 30, height: 30 }, type: 'speed', collected: false, baseY: 390, duration: 420 },
+    { id: 303, position: { x: 5500, y: 490 }, size: { width: 30, height: 30 }, type: 'double_jump', collected: false, baseY: 490, duration: 480 },
+    { id: 304, position: { x: 7200, y: 540 }, size: { width: 30, height: 30 }, type: 'giant', collected: false, baseY: 540, duration: 600 },
 ];

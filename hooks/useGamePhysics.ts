@@ -97,13 +97,12 @@ export const useGamePhysics = ({
         // Check for shield power-up
         const hasShield = p.activePowerUps.some(pu => pu.type === 'shield');
         if (hasShield) {
-            // Remove shield instead of taking damage
             const shieldIndex = p.activePowerUps.findIndex(pu => pu.type === 'shield');
             if (shieldIndex !== -1) {
                 p.activePowerUps.splice(shieldIndex, 1);
-                addFloatingText(p.position.x, p.position.y - 40, 'Kalkan Kırıldı!', '#fbbf24');
+                addFloatingText(p.position.x, p.position.y - 40, 'Kalkan Kirıldi!', '#fbbf24');
                 soundManager.playCoin();
-                p.invincibleTimer = 30; // Brief invincibility
+                p.invincibleTimer = 30;
                 return;
             }
         }
@@ -113,7 +112,16 @@ export const useGamePhysics = ({
         if (hasStar) {
             addFloatingText(p.position.x, p.position.y - 40, 'Yıldız Koruma!', '#fbbf24');
             soundManager.playCoin();
-            return; // No damage at all
+            return;
+        }
+
+        // Check for death protection from hot chocolate
+        if (p.deathProtection) {
+            p.deathProtection = false;
+            addFloatingText(p.position.x, p.position.y - 40, 'Kahve Kurtardi!', '#f97316');
+            soundManager.playCoin();
+            p.invincibleTimer = 60;
+            return;
         }
 
         p.lives -= 1;
@@ -570,6 +578,12 @@ export const useGamePhysics = ({
         const livingPlayers = gameState.current.players.filter(p => !p.isDead);
 
         gameState.current.enemies.forEach(enemy => {
+            // Handle frozen state
+            if (enemy.frozenTimer && enemy.frozenTimer > 0) {
+                enemy.frozenTimer--;
+                return;
+            }
+
             if (enemy.type === 'boss') {
                 updateBossAI(enemy, gameState.current, addFloatingText);
             } else if ((enemy.type === 'yeti' || enemy.type === 'slime' || enemy.type === 'snowman') && enemy.originalX && enemy.patrolDistance) {
@@ -668,6 +682,29 @@ export const useGamePhysics = ({
 
         for (let i = gameState.current.projectiles.length - 1; i >= 0; i--) {
             const proj = gameState.current.projectiles[i];
+
+            // Player ice projectiles hit enemies
+            if (proj.fromPlayer && proj.type === 'player_ice') {
+                for (let j = gameState.current.enemies.length - 1; j >= 0; j--) {
+                    const enemy = gameState.current.enemies[j];
+                    if (enemy.frozenTimer && enemy.frozenTimer > 0) continue;
+                    if (enemy.type === 'boss') continue;
+
+                    if (isColliding(
+                        {x: proj.position.x, y: proj.position.y, w: proj.size, h: proj.size},
+                        {x: enemy.position.x, y: enemy.position.y, w: enemy.size.width, h: enemy.size.height}
+                    )) {
+                        enemy.frozenTimer = 180;
+                        addFloatingText(enemy.position.x, enemy.position.y - 20, 'Dondu!', '#60a5fa');
+                        soundManager.playCoin();
+                        gameState.current.projectiles.splice(i, 1);
+                        break;
+                    }
+                }
+                continue;
+            }
+
+            // Enemy projectiles hit players
             gameState.current.players.forEach(p => {
                 if (p.isDead || p.invincibleTimer > 0) return;
                 if (isColliding(
@@ -976,7 +1013,8 @@ export const useGamePhysics = ({
 
                         if (coin.type === 'hot-chocolate') {
                             p.buff = { type: 'warmth', timer: HOT_CHOCOLATE_DURATION };
-                            addFloatingText(coin.position.x, coin.position.y - 40, 'Isındın!', '#f97316');
+                            p.deathProtection = true;
+                            addFloatingText(coin.position.x, coin.position.y - 40, 'Olum Korumasi!', '#f97316');
                         } else {
                             callbacks.setCurrentScore(gameState.current.score + 10);
                             gameState.current.score += 10;
@@ -998,14 +1036,22 @@ export const useGamePhysics = ({
                         // Add power-up to player
                         p.activePowerUps.push({ type: powerUp.type, timer: powerUp.duration });
 
+                        // Giant effect - increase size
+                        if (powerUp.type === 'giant') {
+                            p.size.width = p.baseSize.width * 1.5;
+                            p.size.height = p.baseSize.height * 1.5;
+                        }
+
                         const names: Record<string, string> = {
                             'shield': 'Kalkan!',
-                            'speed': 'Hız!',
-                            'double_jump': 'Çift Zıplama!',
-                            'magnet': 'Mıknatıs!',
-                            'star': 'Yıldız!'
+                            'speed': 'Hiz!',
+                            'double_jump': 'Cift Ziplama!',
+                            'magnet': 'Miknatıs!',
+                            'star': 'Yildiz!',
+                            'ice_throw': 'Buz Gucu!',
+                            'giant': 'Dev Mod!'
                         };
-                        addFloatingText(powerUp.position.x, powerUp.position.y - 20, names[powerUp.type], '#fbbf24');
+                        addFloatingText(powerUp.position.x, powerUp.position.y - 20, names[powerUp.type] || 'Guc!', '#fbbf24');
                     }
                 }
             });
@@ -1014,7 +1060,41 @@ export const useGamePhysics = ({
             for (let i = p.activePowerUps.length - 1; i >= 0; i--) {
                 p.activePowerUps[i].timer--;
                 if (p.activePowerUps[i].timer <= 0) {
+                    // Revert giant size when power-up expires
+                    if (p.activePowerUps[i].type === 'giant') {
+                        p.size.width = p.baseSize.width;
+                        p.size.height = p.baseSize.height;
+                        addFloatingText(p.position.x, p.position.y - 40, 'Normal Boy!', '#94a3b8');
+                    }
                     p.activePowerUps.splice(i, 1);
+                }
+            }
+
+            // Ice throw cooldown
+            if (p.iceThrowCooldown > 0) p.iceThrowCooldown--;
+
+            // Ice throw ability
+            const hasIceThrow = p.activePowerUps.some(pu => pu.type === 'ice_throw');
+            if (hasIceThrow && p.iceThrowCooldown <= 0) {
+                const isSolo = gameState.current.players.length === 1;
+                const fireKey = isSolo ? (inputs.current['e'] || inputs.current['E']) :
+                    (p.id === 'cemre' ? (inputs.current['m'] || inputs.current['M']) : (inputs.current['e'] || inputs.current['E']));
+
+                if (fireKey) {
+                    const dir = p.facing === 'right' ? 1 : -1;
+                    gameState.current.projectiles.push({
+                        id: Math.random() * 10000,
+                        position: { x: p.position.x + p.size.width / 2, y: p.position.y + p.size.height / 2 },
+                        velocity: { x: dir * 8, y: 0 },
+                        size: 15,
+                        type: 'player_ice',
+                        damage: 1,
+                        life: 90,
+                        fromPlayer: true
+                    });
+                    p.iceThrowCooldown = 30;
+                    soundManager.playJump();
+                    addFloatingText(p.position.x, p.position.y - 20, 'Buz!', '#60a5fa');
                 }
             }
       

@@ -29,6 +29,8 @@ export interface Player {
   invincibleTimer: number; // New: Flashing effect
   activePowerUps: Array<{ type: PowerUp['type']; timer: number }>; // Multiple power-ups
   hasDoubleJump: boolean; // For double jump power-up
+  deathProtection: boolean; // Hot chocolate death protection
+  iceThrowCooldown: number; // Cooldown for ice throw
 
   // Game Feel Mechanics
   coyoteTimer: number; // Frames allowing jump after leaving ground
@@ -82,7 +84,7 @@ export interface PowerUp {
   id: number;
   position: Vector2;
   size: Size;
-  type: 'shield' | 'speed' | 'double_jump' | 'magnet' | 'star';
+  type: 'shield' | 'speed' | 'double_jump' | 'magnet' | 'star' | 'ice_throw' | 'giant';
   collected: boolean;
   baseY: number;
   duration: number; // frames
@@ -119,6 +121,7 @@ export interface Enemy {
   jumpMaxTimer?: number;
   isJumping?: boolean;
   velocityY?: number;
+  frozenTimer?: number;
 }
 
 export interface Checkpoint {
@@ -165,9 +168,10 @@ export interface Projectile {
   position: Vector2;
   velocity: Vector2;
   size: number;
-  type: 'ice_ball' | 'shockwave';
+  type: 'ice_ball' | 'shockwave' | 'player_ice';
   damage: number;
   life: number;
+  fromPlayer?: boolean;
 }
 
 export interface AuroraCrystal {

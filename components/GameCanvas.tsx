@@ -3,9 +3,9 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Player, GameState, Particle, EffectParticle } from '../types';
 import {
   getInitialPlayers,
-  getWinterPlatforms, getWinterCoins, getWinterEnemies, getWinterCheckpoints,
-  getButterflyPlatforms, getButterflyCoins, getButterflyEnemies, getButterflyCheckpoints,
-  getFruitParadisePlatforms, getFruitParadiseCoins, getFruitParadiseEnemies, getFruitParadiseCheckpoints,
+  getWinterPlatforms, getWinterCoins, getWinterEnemies, getWinterCheckpoints, getWinterPowerUps,
+  getButterflyPlatforms, getButterflyCoins, getButterflyEnemies, getButterflyCheckpoints, getButterflyPowerUps,
+  getFruitParadisePlatforms, getFruitParadiseCoins, getFruitParadiseEnemies, getFruitParadiseCheckpoints, getFruitParadisePowerUps,
   getBossLevelPlatforms, getBossLevelCoins, getBossLevelEnemies, getBossLevelCheckpoints, getBossLevelPowerUps,
   INITIAL_RESPAWN_POINT,
   CANVAS_WIDTH, CANVAS_HEIGHT
@@ -28,7 +28,7 @@ interface HUDState {
     level: number;
     windActive: boolean;
     canTeleport: boolean;
-    players: { id: string; name: string; color: string; lives: number; isDead: boolean }[];
+    players: { id: string; name: string; color: string; lives: number; isDead: boolean; deathProtection: boolean; activePowerUps: string[] }[];
 }
 
 export const GameCanvas: React.FC = () => {
@@ -178,7 +178,7 @@ export const GameCanvas: React.FC = () => {
           const gs = gameState.current;
           setHudState({
               score: gs.score,
-              time: Math.floor(gs.globalTime / 60), // approx seconds
+              time: Math.floor(gs.globalTime / 60),
               level: gs.level,
               windActive: gs.windActive,
               canTeleport: gs.canTeleport,
@@ -187,7 +187,9 @@ export const GameCanvas: React.FC = () => {
                   name: p.name,
                   color: p.color,
                   lives: p.lives,
-                  isDead: p.isDead
+                  isDead: p.isDead,
+                  deathProtection: p.deathProtection,
+                  activePowerUps: p.activePowerUps.map(pu => pu.type)
               }))
           });
       }, 100); // Update UI every 100ms (10fps is enough for HUD)
@@ -302,38 +304,39 @@ export const GameCanvas: React.FC = () => {
       const { lives } = gameState.current.runConfig;
 
       gameState.current.players.forEach((p, idx) => {
-          // Reset position AND size
           p.position = { x: 100 + (idx * 50), y: 500 };
           p.velocity = { x: 0, y: 0 };
           p.size = { ...p.baseSize };
           p.isDead = false;
           p.buff = null;
-          p.lives = lives; 
+          p.lives = lives;
           p.invincibleTimer = 0;
           p.coyoteTimer = 0;
           p.jumpBufferTimer = 0;
+          p.deathProtection = false;
+          p.iceThrowCooldown = 0;
+          p.activePowerUps = [];
       });
 
       if (level === 1) {
           gameState.current.platforms = getWinterPlatforms();
           gameState.current.coins = getWinterCoins();
-          gameState.current.powerUps = [];
+          gameState.current.powerUps = getWinterPowerUps();
           gameState.current.enemies = getWinterEnemies();
           gameState.current.checkpoints = getWinterCheckpoints();
       } else if (level === 2) {
           gameState.current.platforms = getButterflyPlatforms();
           gameState.current.coins = getButterflyCoins();
-          gameState.current.powerUps = [];
+          gameState.current.powerUps = getButterflyPowerUps();
           gameState.current.enemies = getButterflyEnemies();
           gameState.current.checkpoints = getButterflyCheckpoints();
       } else if (level === 3) {
           gameState.current.platforms = getFruitParadisePlatforms();
           gameState.current.coins = getFruitParadiseCoins();
-          gameState.current.powerUps = [];
+          gameState.current.powerUps = getFruitParadisePowerUps();
           gameState.current.enemies = getFruitParadiseEnemies();
           gameState.current.checkpoints = getFruitParadiseCheckpoints();
       } else {
-          // Level 4 (Boss)
           gameState.current.platforms = getBossLevelPlatforms();
           gameState.current.coins = getBossLevelCoins();
           gameState.current.powerUps = getBossLevelPowerUps();
@@ -630,7 +633,11 @@ export const GameCanvas: React.FC = () => {
                                 {getLevelName(hudState.level)}
                              </div>
                              <div className="flex items-center text-white px-2">
-                                <span className="text-3xl mr-2">🥐</span>
+                                <svg className="w-8 h-8 mr-2" viewBox="0 0 32 32">
+                                  <circle cx="16" cy="16" r="14" fill="#d97706"/>
+                                  <path d="M10 16 Q16 8 22 16 Q16 24 10 16" fill="none" stroke="#78350f" strokeWidth="2"/>
+                                  <path d="M8 14 Q16 6 24 14" fill="none" stroke="#78350f" strokeWidth="1.5"/>
+                                </svg>
                                 <span className="font-bold text-3xl font-mono">{hudState.score}</span>
                              </div>
                         </div>
@@ -688,6 +695,21 @@ export const GameCanvas: React.FC = () => {
                                      <span className="text-white font-bold text-sm ml-1">
                                          {p.lives === Infinity ? '∞' : p.lives}
                                      </span>
+                                     {p.deathProtection && (
+                                         <span className="ml-2 text-orange-400 text-xs" title="Olum Korumasi">☕</span>
+                                     )}
+                                     {p.activePowerUps.includes('ice_throw') && (
+                                         <span className="ml-1 text-blue-400 text-xs" title="Buz Gucu (E)">❄️</span>
+                                     )}
+                                     {p.activePowerUps.includes('giant') && (
+                                         <span className="ml-1 text-orange-500 text-xs" title="Dev Mod">XL</span>
+                                     )}
+                                     {p.activePowerUps.includes('shield') && (
+                                         <span className="ml-1 text-blue-500 text-xs" title="Kalkan">🛡</span>
+                                     )}
+                                     {p.activePowerUps.includes('star') && (
+                                         <span className="ml-1 text-yellow-400 text-xs" title="Yildiz">★</span>
+                                     )}
                                  </div>
                              ))}
                         </div>

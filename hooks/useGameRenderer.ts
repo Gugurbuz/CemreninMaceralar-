@@ -912,7 +912,14 @@ export const useGameRenderer = (
         gameState.current.enemies.forEach(enemy => {
             const x = enemy.position.x;
             const y = enemy.position.y;
-            
+
+            // Frozen effect overlay
+            const isFrozen = enemy.frozenTimer && enemy.frozenTimer > 0;
+            if (isFrozen) {
+                ctx.save();
+                ctx.globalAlpha = 0.5;
+            }
+
             if (enemy.type === 'snowman') {
                 ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x + 20, y + 35, 15, 0, Math.PI*2); ctx.fill();
                 ctx.beginPath(); ctx.arc(x + 20, y + 15, 12, 0, Math.PI*2); ctx.fill();
@@ -1150,6 +1157,16 @@ export const useGameRenderer = (
                 ctx.fillText('Aurora Koruyucusu', x + enemy.size.width / 2, barY - 8);
                 ctx.shadowBlur = 0;
             }
+
+            // Close frozen effect and draw ice overlay
+            if (isFrozen) {
+                ctx.restore();
+                ctx.fillStyle = 'rgba(100, 200, 255, 0.4)';
+                ctx.fillRect(x - 5, y - 5, enemy.size.width + 10, enemy.size.height + 10);
+                ctx.strokeStyle = '#60a5fa';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x - 5, y - 5, enemy.size.width + 10, enemy.size.height + 10);
+            }
         });
 
         // Draw power-ups
@@ -1166,21 +1183,97 @@ export const useGameRenderer = (
             ctx.fillStyle = powerUp.type === 'shield' ? '#60a5fa' :
                            powerUp.type === 'speed' ? '#fbbf24' :
                            powerUp.type === 'double_jump' ? '#22c55e' :
-                           powerUp.type === 'magnet' ? '#a855f7' : '#f97316';
+                           powerUp.type === 'magnet' ? '#a855f7' :
+                           powerUp.type === 'ice_throw' ? '#60a5fa' :
+                           powerUp.type === 'giant' ? '#f97316' : '#f97316';
             ctx.beginPath();
             ctx.arc(px, py, 25, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
 
-            // Icon
-            ctx.font = '24px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            const icon = powerUp.type === 'shield' ? '🛡️' :
-                        powerUp.type === 'speed' ? '⚡' :
-                        powerUp.type === 'double_jump' ? '🦘' :
-                        powerUp.type === 'magnet' ? '🧲' : '⭐';
-            ctx.fillText(icon, px, py);
+            // Draw custom icon for each power-up type
+            ctx.save();
+            if (powerUp.type === 'shield') {
+                ctx.fillStyle = '#3b82f6';
+                ctx.beginPath();
+                ctx.moveTo(px, py - 12);
+                ctx.lineTo(px + 10, py - 6);
+                ctx.lineTo(px + 10, py + 6);
+                ctx.lineTo(px, py + 12);
+                ctx.lineTo(px - 10, py + 6);
+                ctx.lineTo(px - 10, py - 6);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#1d4ed8';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            } else if (powerUp.type === 'speed') {
+                ctx.fillStyle = '#fbbf24';
+                ctx.beginPath();
+                ctx.moveTo(px + 8, py - 10);
+                ctx.lineTo(px - 2, py);
+                ctx.lineTo(px + 2, py);
+                ctx.lineTo(px - 8, py + 10);
+                ctx.lineTo(px + 2, py + 2);
+                ctx.lineTo(px - 2, py + 2);
+                ctx.closePath();
+                ctx.fill();
+            } else if (powerUp.type === 'double_jump') {
+                ctx.fillStyle = '#22c55e';
+                ctx.beginPath();
+                ctx.arc(px, py + 4, 8, 0, Math.PI, true);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(px, py - 4, 6, 0, Math.PI, true);
+                ctx.fill();
+            } else if (powerUp.type === 'magnet') {
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(px - 8, py - 8, 6, 16);
+                ctx.fillStyle = '#3b82f6';
+                ctx.fillRect(px + 2, py - 8, 6, 16);
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(px - 4, py - 12, 8, 6);
+            } else if (powerUp.type === 'star') {
+                ctx.fillStyle = '#fbbf24';
+                ctx.beginPath();
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i * 4 * Math.PI / 5) - Math.PI / 2;
+                    const r = i % 2 === 0 ? 10 : 5;
+                    if (i === 0) ctx.moveTo(px + Math.cos(angle) * r, py + Math.sin(angle) * r);
+                    else ctx.lineTo(px + Math.cos(angle) * r, py + Math.sin(angle) * r);
+                }
+                ctx.closePath();
+                ctx.fill();
+            } else if (powerUp.type === 'ice_throw') {
+                ctx.fillStyle = '#60a5fa';
+                ctx.beginPath();
+                ctx.arc(px, py, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(px - 2, py - 2, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#3b82f6';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(px + 6, py);
+                ctx.lineTo(px + 14, py);
+                ctx.stroke();
+            } else if (powerUp.type === 'giant') {
+                ctx.fillStyle = '#f97316';
+                ctx.beginPath();
+                ctx.moveTo(px, py - 12);
+                ctx.lineTo(px + 10, py + 8);
+                ctx.lineTo(px - 10, py + 8);
+                ctx.closePath();
+                ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 10px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('XL', px, py + 2);
+            }
+            ctx.restore();
         });
 
         gameState.current.projectiles.forEach(proj => {
@@ -1216,6 +1309,34 @@ export const useGameRenderer = (
                 ctx.arc(px, py, waveWidth, 0, Math.PI * 2);
                 ctx.stroke();
                 ctx.restore();
+            } else if (proj.type === 'player_ice') {
+                // Player ice projectile with trail effect
+                ctx.save();
+                const trailGrad = ctx.createLinearGradient(
+                    px - proj.velocity.x * 2, py,
+                    px, py
+                );
+                trailGrad.addColorStop(0, 'rgba(147, 197, 253, 0)');
+                trailGrad.addColorStop(1, 'rgba(147, 197, 253, 0.6)');
+                ctx.fillStyle = trailGrad;
+                ctx.fillRect(px - proj.velocity.x * 2 - 5, py - 5, Math.abs(proj.velocity.x * 2) + 10, 10);
+                ctx.restore();
+
+                ctx.fillStyle = '#93c5fd';
+                ctx.beginPath();
+                ctx.arc(px, py, proj.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(px - 2, py - 2, proj.size / 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.strokeStyle = '#60a5fa';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(px, py, proj.size / 2, 0, Math.PI * 2);
+                ctx.stroke();
             }
         });
 
