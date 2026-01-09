@@ -93,8 +93,8 @@ export const getWinterPlatforms = (): Platform[] => [
   { position: { x: 2500, y: 650 }, size: { width: 1000, height: 100 }, type: 'ground', color: '#cbd5e1' }, 
   { position: { x: 3400, y: 570 }, size: { width: 80, height: 80 }, type: 'mushroom', color: '#fde047', deformation: 0 },
   { position: { x: 3200, y: 200 }, size: { width: 300, height: 20 }, type: 'ground', color: '#e2e8f0' }, 
-  { id: 99, position: { x: 3450, y: 50 }, size: { width: 40, height: 150 }, type: 'door', color: '#334155', isOpen: false },
-  { id: 100, linkId: 99, position: { x: 3300, y: 190 }, size: { width: 40, height: 10 }, type: 'plate', color: '#facc15', isPressed: false },
+  { id: 99, position: { x: 3450, y: -50 }, size: { width: 40, height: 250 }, type: 'door', color: '#334155', isOpen: false },
+  { id: 100, linkId: 99, position: { x: 2700, y: 640 }, size: { width: 40, height: 10 }, type: 'plate', color: '#facc15', isPressed: false },
   { position: { x: 3500, y: 200 }, size: { width: 150, height: 400 }, type: 'ice', color: '#bae6fd' }, 
   { position: { x: 3650, y: 300 }, size: { width: 150, height: 300 }, type: 'ice', color: '#bae6fd' }, 
   { position: { x: 3800, y: 400 }, size: { width: 150, height: 200 }, type: 'ice', color: '#bae6fd' }, 
@@ -205,14 +205,14 @@ export const getWinterEnemies = (): Enemy[] => [
 ];
 
 export const getWinterCheckpoints = (): Checkpoint[] => [
-    { id: 1, position: { x: 2100, y: 550 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 2, position: { x: 4000, y: 450 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 3, position: { x: 5700, y: 550 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 4, position: { x: 7300, y: 500 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 5, position: { x: 8700, y: 150 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 6, position: { x: 10000, y: 250 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 7, position: { x: 12700, y: 100 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 8, position: { x: 14450, y: 300 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 1, position: { x: 2100, y: 540 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 2, position: { x: 4300, y: 540 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 3, position: { x: 5750, y: 540 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 4, position: { x: 7000, y: 490 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 5, position: { x: 8700, y: 140 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 6, position: { x: 9900, y: 240 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 7, position: { x: 12700, y: 90 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 8, position: { x: 14450, y: 290 }, size: { width: 40, height: 60 }, triggered: false },
 ];
 
 // --- LEVEL 2: BUTTERFLY VALLEY (EXTENDED) ---
@@ -335,13 +335,13 @@ export const getButterflyEnemies = (): Enemy[] => [
 ];
 
 export const getButterflyCheckpoints = (): Checkpoint[] => [
-    { id: 201, position: { x: 1800, y: 550 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 202, position: { x: 4400, y: 550 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 203, position: { x: 7600, y: 500 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 204, position: { x: 9850, y: 550 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 205, position: { x: 12600, y: 600 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 206, position: { x: 14500, y: 470 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 207, position: { x: 15600, y: 550 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 201, position: { x: 1800, y: 540 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 202, position: { x: 4400, y: 540 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 203, position: { x: 7600, y: 490 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 204, position: { x: 9900, y: 540 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 205, position: { x: 11600, y: 590 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 206, position: { x: 14300, y: 460 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 207, position: { x: 15700, y: 540 }, size: { width: 40, height: 60 }, triggered: false },
 ];
 
 // --- LEVEL 3: FRUIT PARADISE (BONUS LEVEL) ---
@@ -519,11 +519,11 @@ export const getFruitParadiseCoins = (): Coin[] => [
 export const getFruitParadiseEnemies = (): Enemy[] => []; // No enemies!
 
 export const getFruitParadiseCheckpoints = (): Checkpoint[] => [
-    { id: 301, position: { x: 1650, y: 550 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 302, position: { x: 2600, y: 600 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 303, position: { x: 4200, y: 450 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 304, position: { x: 5000, y: 600 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 305, position: { x: 6100, y: 230 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 301, position: { x: 1800, y: 540 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 302, position: { x: 2600, y: 590 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 303, position: { x: 4150, y: 340 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 304, position: { x: 5000, y: 590 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 305, position: { x: 7000, y: 540 }, size: { width: 40, height: 60 }, triggered: false },
 ];
 
 // --- LEVEL 4: AURORA'S GUARDIAN (BOSS LEVEL) ---
@@ -622,8 +622,8 @@ export const getBossLevelEnemies = (): Enemy[] => [
 ];
 
 export const getBossLevelCheckpoints = (): Checkpoint[] => [
-    { id: 401, position: { x: 950, y: 500 }, size: { width: 40, height: 60 }, triggered: false },
-    { id: 402, position: { x: 4600, y: 550 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 401, position: { x: 950, y: 490 }, size: { width: 40, height: 60 }, triggered: false },
+    { id: 402, position: { x: 4500, y: 590 }, size: { width: 40, height: 60 }, triggered: false },
 ];
 
 export const getBossLevelPowerUps = (): import('./types').PowerUp[] => [
