@@ -322,7 +322,7 @@ export const useGamePhysics = ({
                      player.scale.x = 1.3;
                      player.scale.y = 0.7;
 
-                     if (gameState.current.level === 2 && bestPlatform.type === 'ice') {
+                     if (gameState.current.level === 2 && (bestPlatform.type === 'ice' || bestPlatform.type === 'slippery')) {
                            createSplash(player.position.x + player.size.width/2, player.position.y + player.size.height);
                      } else {
                            createDust(player.position.x + player.size.width/2, player.position.y + player.size.height);
@@ -335,6 +335,8 @@ export const useGamePhysics = ({
                          handlePlayerDamage(player);
                          addFloatingText(player.position.x, player.position.y - 40, "Su Çok Soğuk!", "#38bdf8");
                      }
+                 } else if (bestPlatform.type === 'slippery') {
+                     friction = ICE_FRICTION;
                  } else if (bestPlatform.type === 'crumbly') {
                      if (!bestPlatform.isFalling) bestPlatform.isFalling = true;
                  }
