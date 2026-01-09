@@ -857,55 +857,22 @@ export const useGameRenderer = (
             if (coin.collected && !coin.isNectarDrop) return;
             const bob = Math.sin(gameState.current.globalTime * 0.1) * 5;
             const cy = coin.baseY + bob;
-    
-            if (coin.type === 'kanelbulle') {
-                ctx.fillStyle = '#d97706'; 
-                ctx.beginPath(); ctx.arc(coin.position.x, cy, coin.size, 0, Math.PI*2); ctx.fill();
-                ctx.strokeStyle = '#78350f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(coin.position.x, cy, coin.size * 0.6, 0, Math.PI*1.5); ctx.stroke();
-            } else if (coin.type === 'gold') {
-                ctx.fillStyle = '#fbbf24'; 
-                ctx.beginPath(); ctx.arc(coin.position.x, cy, coin.size, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(coin.position.x, cy, coin.size * 0.7, 0, Math.PI*2); ctx.fill();
-            } else if (coin.type === 'hot-chocolate') {
-                ctx.fillStyle = '#ef4444'; ctx.fillRect(coin.position.x - 8, cy - 8, 16, 16);
-                ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(coin.position.x + 8, cy, 5, -Math.PI/2, Math.PI/2); ctx.stroke();
-                ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.globalAlpha = 0.7;
-                const steamOffset = Math.sin(gameState.current.globalTime * 0.1) * 2;
-                ctx.beginPath(); ctx.moveTo(coin.position.x - 3, cy - 10); ctx.lineTo(coin.position.x - 3 + steamOffset, cy - 18);
-                ctx.moveTo(coin.position.x + 3, cy - 10); ctx.lineTo(coin.position.x + 3 + steamOffset, cy - 18); ctx.stroke(); ctx.globalAlpha = 1.0;
-            } else if (coin.type === 'apple') {
-                ctx.fillStyle = '#ef4444'; 
-                ctx.beginPath(); ctx.arc(coin.position.x, cy, coin.size, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#65a30d'; // Leaf
-                ctx.beginPath(); ctx.ellipse(coin.position.x, cy - coin.size, 4, 2, 0, 0, Math.PI*2); ctx.fill();
-            } else if (coin.type === 'cherry') {
-                ctx.fillStyle = '#be123c';
-                ctx.beginPath(); ctx.arc(coin.position.x - 5, cy + 2, coin.size * 0.7, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(coin.position.x + 5, cy + 4, coin.size * 0.7, 0, Math.PI*2); ctx.fill();
-                ctx.strokeStyle = '#65a30d'; ctx.lineWidth = 2;
-                ctx.beginPath(); ctx.moveTo(coin.position.x - 5, cy + 2); ctx.lineTo(coin.position.x, cy - 10); ctx.lineTo(coin.position.x + 5, cy + 4); ctx.stroke();
-            } else if (coin.type === 'banana') {
-                ctx.fillStyle = '#facc15';
-                ctx.beginPath();
-                ctx.moveTo(coin.position.x - 10, cy - 5);
-                ctx.quadraticCurveTo(coin.position.x, cy + 10, coin.position.x + 10, cy - 10);
-                ctx.quadraticCurveTo(coin.position.x, cy + 5, coin.position.x - 10, cy - 5);
-                ctx.fill();
-                ctx.strokeStyle = '#eab308';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            }
-    
-            const shimmerPos = (gameState.current.globalTime * 5) % (coin.size * 4) - coin.size * 2;
+
+            // Draw emoji for each collectible type
             ctx.save();
-            ctx.beginPath(); ctx.arc(coin.position.x, cy, coin.size, 0, Math.PI * 2); ctx.clip();
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-            ctx.beginPath();
-            ctx.moveTo(coin.position.x + shimmerPos - 5, cy - coin.size);
-            ctx.lineTo(coin.position.x + shimmerPos + 5, cy - coin.size);
-            ctx.lineTo(coin.position.x + shimmerPos + 15, cy + coin.size);
-            ctx.lineTo(coin.position.x + shimmerPos + 5, cy + coin.size);
-            ctx.fill();
+            ctx.font = `${coin.size * 2}px serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            let emoji = '';
+            if (coin.type === 'kanelbulle') emoji = '\u{1F36A}';
+            else if (coin.type === 'gold') emoji = '\u{1FA99}';
+            else if (coin.type === 'hot-chocolate') emoji = '\u2615';
+            else if (coin.type === 'apple') emoji = '\u{1F34E}';
+            else if (coin.type === 'cherry') emoji = '\u{1F352}';
+            else if (coin.type === 'banana') emoji = '\u{1F34C}';
+
+            ctx.fillText(emoji, coin.position.x, cy);
             ctx.restore();
         });
     
@@ -1169,7 +1136,7 @@ export const useGameRenderer = (
             }
         });
 
-        // Draw power-ups
+        // Draw power-ups with emojis
         gameState.current.powerUps.forEach(powerUp => {
             if (powerUp.collected) return;
 
@@ -1191,88 +1158,22 @@ export const useGameRenderer = (
             ctx.fill();
             ctx.restore();
 
-            // Draw custom icon for each power-up type
+            // Draw emoji for each power-up type
             ctx.save();
-            if (powerUp.type === 'shield') {
-                ctx.fillStyle = '#3b82f6';
-                ctx.beginPath();
-                ctx.moveTo(px, py - 12);
-                ctx.lineTo(px + 10, py - 6);
-                ctx.lineTo(px + 10, py + 6);
-                ctx.lineTo(px, py + 12);
-                ctx.lineTo(px - 10, py + 6);
-                ctx.lineTo(px - 10, py - 6);
-                ctx.closePath();
-                ctx.fill();
-                ctx.strokeStyle = '#1d4ed8';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            } else if (powerUp.type === 'speed') {
-                ctx.fillStyle = '#fbbf24';
-                ctx.beginPath();
-                ctx.moveTo(px + 8, py - 10);
-                ctx.lineTo(px - 2, py);
-                ctx.lineTo(px + 2, py);
-                ctx.lineTo(px - 8, py + 10);
-                ctx.lineTo(px + 2, py + 2);
-                ctx.lineTo(px - 2, py + 2);
-                ctx.closePath();
-                ctx.fill();
-            } else if (powerUp.type === 'double_jump') {
-                ctx.fillStyle = '#22c55e';
-                ctx.beginPath();
-                ctx.arc(px, py + 4, 8, 0, Math.PI, true);
-                ctx.fill();
-                ctx.beginPath();
-                ctx.arc(px, py - 4, 6, 0, Math.PI, true);
-                ctx.fill();
-            } else if (powerUp.type === 'magnet') {
-                ctx.fillStyle = '#ef4444';
-                ctx.fillRect(px - 8, py - 8, 6, 16);
-                ctx.fillStyle = '#3b82f6';
-                ctx.fillRect(px + 2, py - 8, 6, 16);
-                ctx.fillStyle = '#94a3b8';
-                ctx.fillRect(px - 4, py - 12, 8, 6);
-            } else if (powerUp.type === 'star') {
-                ctx.fillStyle = '#fbbf24';
-                ctx.beginPath();
-                for (let i = 0; i < 5; i++) {
-                    const angle = (i * 4 * Math.PI / 5) - Math.PI / 2;
-                    const r = i % 2 === 0 ? 10 : 5;
-                    if (i === 0) ctx.moveTo(px + Math.cos(angle) * r, py + Math.sin(angle) * r);
-                    else ctx.lineTo(px + Math.cos(angle) * r, py + Math.sin(angle) * r);
-                }
-                ctx.closePath();
-                ctx.fill();
-            } else if (powerUp.type === 'ice_throw') {
-                ctx.fillStyle = '#60a5fa';
-                ctx.beginPath();
-                ctx.arc(px, py, 8, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = '#fff';
-                ctx.beginPath();
-                ctx.arc(px - 2, py - 2, 3, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.strokeStyle = '#3b82f6';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(px + 6, py);
-                ctx.lineTo(px + 14, py);
-                ctx.stroke();
-            } else if (powerUp.type === 'giant') {
-                ctx.fillStyle = '#f97316';
-                ctx.beginPath();
-                ctx.moveTo(px, py - 12);
-                ctx.lineTo(px + 10, py + 8);
-                ctx.lineTo(px - 10, py + 8);
-                ctx.closePath();
-                ctx.fill();
-                ctx.fillStyle = '#fff';
-                ctx.font = 'bold 10px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('XL', px, py + 2);
-            }
+            ctx.font = '28px serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            let emoji = '';
+            if (powerUp.type === 'shield') emoji = '\u{1F6E1}\u{FE0F}';
+            else if (powerUp.type === 'speed') emoji = '\u26A1';
+            else if (powerUp.type === 'double_jump') emoji = '\u{1F998}';
+            else if (powerUp.type === 'magnet') emoji = '\u{1F9F2}';
+            else if (powerUp.type === 'star') emoji = '\u2B50';
+            else if (powerUp.type === 'ice_throw') emoji = '\u2744\u{FE0F}';
+            else if (powerUp.type === 'giant') emoji = '\u{1F4AA}';
+
+            ctx.fillText(emoji, px, py);
             ctx.restore();
         });
 

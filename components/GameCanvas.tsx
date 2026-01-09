@@ -633,11 +633,7 @@ export const GameCanvas: React.FC = () => {
                                 {getLevelName(hudState.level)}
                              </div>
                              <div className="flex items-center text-white px-2">
-                                <svg className="w-8 h-8 mr-2" viewBox="0 0 32 32">
-                                  <circle cx="16" cy="16" r="14" fill="#d97706"/>
-                                  <path d="M10 16 Q16 8 22 16 Q16 24 10 16" fill="none" stroke="#78350f" strokeWidth="2"/>
-                                  <path d="M8 14 Q16 6 24 14" fill="none" stroke="#78350f" strokeWidth="1.5"/>
-                                </svg>
+                                <span className="text-3xl mr-2">{'\u{1F36A}'}</span>
                                 <span className="font-bold text-3xl font-mono">{hudState.score}</span>
                              </div>
                         </div>
