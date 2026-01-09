@@ -209,10 +209,10 @@ export const getButterflyPlatforms = (): Platform[] => [
   { position: { x: 9800, y: 600 }, size: { width: 800, height: 200 }, type: 'ground', color: '#86efac' },
 
   // --- ACT 3 EXTENSION: THE GREAT SLIDE ---
-  // A series of ice platforms (using ice for slide physics) colored like water or mossy rocks
-  { position: { x: 10800, y: 500 }, size: { width: 200, height: 20 }, type: 'ice', color: '#86efac' },
-  { position: { x: 11000, y: 550 }, size: { width: 200, height: 20 }, type: 'ice', color: '#86efac' },
-  { position: { x: 11200, y: 600 }, size: { width: 200, height: 20 }, type: 'ice', color: '#86efac' },
+  // A series of slippery platforms (using slippery for slide physics) colored like water or mossy rocks
+  { position: { x: 10800, y: 500 }, size: { width: 200, height: 20 }, type: 'slippery', color: '#86efac' },
+  { position: { x: 11000, y: 550 }, size: { width: 200, height: 20 }, type: 'slippery', color: '#86efac' },
+  { position: { x: 11200, y: 600 }, size: { width: 200, height: 20 }, type: 'slippery', color: '#86efac' },
   
   // Final Run
   { position: { x: 11500, y: 650 }, size: { width: 2000, height: 200 }, type: 'ground', color: '#86efac' },

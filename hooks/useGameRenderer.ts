@@ -653,7 +653,7 @@ export const useGameRenderer = (
     
           } else if (plat.type === 'ice') {
               if (gameState.current.level === 2) {
-                 ctx.fillStyle = 'rgba(56, 189, 248, 0.6)'; 
+                 ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
                  ctx.fillRect(plat.position.x, plat.position.y, plat.size.width, plat.size.height);
                  ctx.fillStyle = 'rgba(255,255,255,0.8)';
                  ctx.fillRect(plat.position.x, plat.position.y, plat.size.width, 5);
@@ -673,6 +673,15 @@ export const useGameRenderer = (
                  ctx.lineTo(plat.position.x + plat.size.width, plat.position.y);
                  ctx.lineTo(plat.position.x, plat.position.y + plat.size.height);
                  ctx.fill();
+              }
+          } else if (plat.type === 'slippery') {
+              ctx.fillStyle = plat.color;
+              ctx.fillRect(plat.position.x, plat.position.y, plat.size.width, plat.size.height);
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+              ctx.fillRect(plat.position.x, plat.position.y, plat.size.width, 5);
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+              for(let i = 0; i < plat.size.width; i += 30) {
+                  ctx.fillRect(plat.position.x + i + 5, plat.position.y + 5, 15, 3);
               }
           } else if (plat.type === 'aurora') {
               const gradient = ctx.createLinearGradient(0, plat.position.y + 100, 0, plat.position.y - 400);
