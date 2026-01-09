@@ -14,7 +14,12 @@ import { soundManager } from '../utils/SoundManager';
 import { useGameInput } from '../hooks/useGameInput';
 import { useGameRenderer } from '../hooks/useGameRenderer';
 import { useGamePhysics } from '../hooks/useGamePhysics';
+import { useCompletionTracking } from '../hooks/useCompletionTracking';
 import { MobileControls } from './MobileControls';
+import { AchievementNotification } from './AchievementNotification';
+import { Leaderboard } from './Leaderboard';
+import { AchievementTracker, ACHIEVEMENTS, AchievementDefinition } from '../lib/achievements';
+import { DatabaseService, createDatabaseService } from '../lib/database';
 
 // Separate interface for React UI State (Decoupled from Engine)
 interface HUDState {
@@ -60,15 +65,26 @@ export const GameCanvas: React.FC = () => {
   const dialogTimeoutRef = useRef<number | null>(null);
 
   const [isTouchDevice, setIsTouchDevice] = useState(false);
-  
+
   const [tutorialState, setTutorialState] = useState({
       moved: false,
       jumped: false,
       completed: false
   });
-  
+
   const tutorialStateRef = useRef({ moved: false, jumped: false });
   const lastPauseToggle = useRef<number>(0);
+
+  // Achievement & Progress tracking
+  const [playerName, setPlayerName] = useState<string>('Player');
+  const [showNamePrompt, setShowNamePrompt] = useState<boolean>(false);
+  const [currentAchievement, setCurrentAchievement] = useState<AchievementDefinition | null>(null);
+  const [showLeaderboard, setShowLeaderboard] = useState<boolean>(false);
+  const [showAchievements, setShowAchievements] = useState<boolean>(false);
+  const achievementTrackerRef = useRef<AchievementTracker>(new AchievementTracker());
+  const dbServiceRef = useRef<DatabaseService>(createDatabaseService());
+  const { completionData, updateCompletion, getTotalCompletion, isPerfectRun, reset: resetCompletion } = useCompletionTracking();
+  const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>([]);
 
   // Game State Refs
   const gameState = useRef<GameState>({
@@ -135,13 +151,69 @@ export const GameCanvas: React.FC = () => {
           });
       }, 100); // Update UI every 100ms (10fps is enough for HUD)
 
-      return () => clearInterval(uiSyncInterval);
-  }, [gameStatus]);
+      // Check for achievements periodically
+      const achievementInterval = setInterval(() => {
+        checkAchievements();
+      }, 5000); // Check every 5 seconds
+
+      return () => {
+        clearInterval(uiSyncInterval);
+        clearInterval(achievementInterval);
+      };
+  }, [gameStatus, checkAchievements]);
 
   useEffect(() => {
       // Check for touch device once
       setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
+      // Load player name from localStorage
+      const savedName = localStorage.getItem('playerName');
+      if (savedName) {
+        setPlayerName(savedName);
+        dbServiceRef.current.setPlayerName(savedName);
+      } else {
+        setShowNamePrompt(true);
+      }
+
+      // Load unlocked achievements
+      loadUnlockedAchievements();
   }, []);
+
+  const loadUnlockedAchievements = async () => {
+    const unlocked = await dbServiceRef.current.getUnlockedAchievements();
+    setUnlockedAchievements(unlocked);
+  };
+
+  const checkAchievements = useCallback(async () => {
+    const gs = gameState.current;
+    const tracker = achievementTrackerRef.current;
+
+    tracker.updateStats({
+      score: gs.score,
+      level: gs.level,
+      coinsCollected: gs.coinsCollected,
+      enemiesDefeated: gs.enemiesDefeated,
+      timeSeconds: Math.floor(gs.globalTime / 60),
+      deathCount: gs.deathCount,
+      gameMode: gs.gameMode,
+      character: gs.gameMode === 'solo' ? (gs.players[0]?.id as 'cemre' | 'baba') : 'both',
+      perfectJumps: gs.perfectJumps,
+      powerUpsUsed: gs.powerUpsUsed,
+    });
+
+    const newAchievements = tracker.checkAchievements();
+
+    for (const achievement of newAchievements) {
+      if (!unlockedAchievements.includes(achievement.id)) {
+        const success = await dbServiceRef.current.unlockAchievement(achievement);
+        if (success) {
+          setCurrentAchievement(achievement);
+          setUnlockedAchievements(prev => [...prev, achievement.id]);
+          soundManager.playWin();
+        }
+      }
+    }
+  }, [unlockedAchievements]);
 
   // Cleanup dialogs on unmount
   useEffect(() => {
@@ -165,6 +237,48 @@ export const GameCanvas: React.FC = () => {
       setShowDialog(true);
       dialogTimeoutRef.current = window.setTimeout(() => setShowDialog(false), 3000);
   };
+
+  const saveGameProgress = useCallback(async (won: boolean = false) => {
+    const gs = gameState.current;
+
+    // Update completion tracking
+    updateCompletion(gs);
+
+    // Check achievements
+    await checkAchievements();
+
+    // Save to database
+    if (won) {
+      const totalCompletion = getTotalCompletion();
+      const perfect = isPerfectRun();
+
+      await dbServiceRef.current.submitScore({
+        player_name: playerName,
+        score: gs.score,
+        level_reached: gs.level,
+        time_seconds: Math.floor(gs.globalTime / 60),
+        coins_collected: gs.coinsCollected,
+        enemies_defeated: gs.enemiesDefeated,
+        death_count: gs.deathCount,
+        game_mode: gs.gameMode,
+        character: gs.gameMode === 'solo' ? gs.players[0]?.id || 'cemre' : 'both',
+        created_at: new Date().toISOString(),
+      });
+
+      await dbServiceRef.current.updatePlayerProgress({
+        player_name: playerName,
+        highest_level: Math.max(gs.level, 4),
+        total_score: gs.score,
+        total_coins: gs.coinsCollected,
+        total_enemies: gs.enemiesDefeated,
+        death_count: gs.deathCount,
+        perfect_jumps: gs.perfectJumps,
+        power_ups_used: gs.powerUpsUsed,
+        completion_percentage: totalCompletion,
+        achievements_unlocked: unlockedAchievements.length,
+      });
+    }
+  }, [playerName, updateCompletion, checkAchievements, getTotalCompletion, isPerfectRun, unlockedAchievements]);
   
   // Setup logic for Physics Hook
   const loadLevel = useCallback((level: number) => {
@@ -251,7 +365,12 @@ export const GameCanvas: React.FC = () => {
       particles,
       effectParticles,
       callbacks: {
-          setGameStatus,
+          setGameStatus: async (status: any) => {
+            setGameStatus(status);
+            if (status === 'won') {
+              await saveGameProgress(true);
+            }
+          },
           triggerDialog,
           setDialogText,
           loadLevel,
@@ -776,27 +895,66 @@ export const GameCanvas: React.FC = () => {
                 </div>
             )}
             
-            <div className="absolute bottom-4 right-4 text-white/50 text-sm">
-                ESC: Duraklat
+            <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowLeaderboard(true)}
+                    className="px-4 py-2 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 rounded-lg font-bold border border-yellow-500/50 transition-colors"
+                  >
+                    🏆 Liderler
+                  </button>
+                  <button
+                    onClick={() => setShowAchievements(true)}
+                    className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg font-bold border border-purple-500/50 transition-colors"
+                  >
+                    ⭐ Başarımlar ({unlockedAchievements.length}/{ACHIEVEMENTS.length})
+                  </button>
+                </div>
+                <div className="text-white/50 text-sm">
+                  ESC: Duraklat
+                </div>
             </div>
           </div>
         )}
 
         {gameStatus === 'won' && (
           <div className="absolute inset-0 bg-indigo-900/90 flex flex-col items-center justify-center text-white animate-fade-in z-50">
-            <h1 className="text-6xl font-black text-green-300 drop-shadow-lg mb-4">✨ TEBRİKLER! ✨</h1>
-            <p className="text-2xl font-bold mb-8 text-sky-200">Bütün bölümleri bitirdiniz!</p>
-            <div className="text-4xl font-mono mb-8 bg-black/20 px-8 py-2 rounded-lg border border-white/20">Puan: {hudState.score}</div>
-            <button
-              onClick={() => {
-                  soundManager.stopBGM();
-                  setGameStatus('menu');
-                  setMenuStep('mode_select');
-              }}
-              className="px-8 py-4 bg-white text-indigo-900 hover:bg-gray-100 rounded-full text-2xl font-bold shadow-lg"
-            >
-              Menüye Dön 🏠
-            </button>
+            {isPerfectRun() ? (
+              <>
+                <div className="text-8xl mb-4 animate-bounce">🎊</div>
+                <h1 className="text-7xl font-black text-yellow-300 drop-shadow-lg mb-2">MÜKEMMEL!</h1>
+                <p className="text-3xl font-bold mb-4 text-sky-200">%100 Tamamlama!</p>
+                <div className="text-xl text-center max-w-2xl mb-6 px-4 bg-black/30 py-4 rounded-lg">
+                  <p className="mb-2">Tüm paraları topladınız ve tüm düşmanları yendiniz!</p>
+                  <p className="text-yellow-300">Gerçek bir efsane oldunuz! 🏆</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <h1 className="text-6xl font-black text-green-300 drop-shadow-lg mb-4">✨ TEBRİKLER! ✨</h1>
+                <p className="text-2xl font-bold mb-8 text-sky-200">Bütün bölümleri bitirdiniz!</p>
+              </>
+            )}
+            <div className="text-4xl font-mono mb-4 bg-black/20 px-8 py-2 rounded-lg border border-white/20">Puan: {hudState.score}</div>
+            <div className="text-xl mb-8 text-gray-300">Tamamlama: {getTotalCompletion()}%</div>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowLeaderboard(true)}
+                className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-black rounded-full text-xl font-bold shadow-lg"
+              >
+                🏆 Skor Tablosu
+              </button>
+              <button
+                onClick={() => {
+                    soundManager.stopBGM();
+                    setGameStatus('menu');
+                    setMenuStep('mode_select');
+                }}
+                className="px-8 py-4 bg-white text-indigo-900 hover:bg-gray-100 rounded-full text-2xl font-bold shadow-lg"
+              >
+                Menüye Dön 🏠
+              </button>
+            </div>
           </div>
         )}
 
@@ -821,6 +979,122 @@ export const GameCanvas: React.FC = () => {
                 >
                   Menü 🏠
                 </button>
+            </div>
+          </div>
+        )}
+
+        {/* Name Prompt Modal */}
+        {showNamePrompt && (
+          <div className="absolute inset-0 bg-black/90 flex items-center justify-center z-50">
+            <div className="bg-gradient-to-b from-slate-800 to-slate-900 p-8 rounded-2xl shadow-2xl max-w-md border-4 border-sky-500">
+              <h2 className="text-3xl font-black text-white mb-4 text-center">
+                Hoş Geldiniz! 👋
+              </h2>
+              <p className="text-gray-300 mb-6 text-center">
+                Skorunuzu kaydetmek için bir isim girin:
+              </p>
+              <input
+                type="text"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value.slice(0, 20))}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && playerName.trim()) {
+                    localStorage.setItem('playerName', playerName.trim());
+                    dbServiceRef.current.setPlayerName(playerName.trim());
+                    setShowNamePrompt(false);
+                  }
+                }}
+                placeholder="İsminiz"
+                className="w-full px-4 py-3 rounded-lg bg-slate-700 text-white border-2 border-slate-600 focus:border-sky-500 outline-none text-center text-xl font-bold mb-4"
+                autoFocus
+              />
+              <button
+                onClick={() => {
+                  if (playerName.trim()) {
+                    localStorage.setItem('playerName', playerName.trim());
+                    dbServiceRef.current.setPlayerName(playerName.trim());
+                    setShowNamePrompt(false);
+                  }
+                }}
+                disabled={!playerName.trim()}
+                className="w-full py-3 bg-sky-500 hover:bg-sky-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors shadow-lg"
+              >
+                Devam Et
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Achievement Notification */}
+        <AchievementNotification
+          achievement={currentAchievement}
+          onDismiss={() => setCurrentAchievement(null)}
+        />
+
+        {/* Leaderboard Modal */}
+        {showLeaderboard && (
+          <Leaderboard
+            onClose={() => setShowLeaderboard(false)}
+            dbService={dbServiceRef.current}
+          />
+        )}
+
+        {/* Achievements Modal */}
+        {showAchievements && (
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border-4 border-purple-500">
+              <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-6 text-center">
+                <h2 className="text-4xl font-black text-white drop-shadow-lg">
+                  ⭐ BAŞARIMLAR ⭐
+                </h2>
+                <p className="text-white/90 mt-2">
+                  {unlockedAchievements.length} / {ACHIEVEMENTS.length} Açıldı
+                </p>
+              </div>
+
+              <div className="p-6 overflow-y-auto max-h-[70vh] grid grid-cols-1 md:grid-cols-2 gap-4">
+                {ACHIEVEMENTS.map((achievement) => {
+                  const unlocked = unlockedAchievements.includes(achievement.id);
+                  return (
+                    <div
+                      key={achievement.id}
+                      className={`p-4 rounded-xl border-2 transition-all ${
+                        unlocked
+                          ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/50'
+                          : 'bg-slate-800/50 border-slate-700 opacity-60'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`text-5xl ${unlocked ? '' : 'grayscale'}`}>
+                          {achievement.icon}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-bold text-lg text-white">
+                            {achievement.name}
+                          </div>
+                          <div className="text-sm text-gray-300">
+                            {achievement.description}
+                          </div>
+                          {unlocked && (
+                            <div className="text-xs text-green-400 mt-1 flex items-center gap-1">
+                              ✓ Açıldı
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="p-4 bg-slate-900/50 border-t-2 border-slate-700">
+                <button
+                  onClick={() => setShowAchievements(false)}
+                  className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition-colors shadow-lg"
+                >
+                  Kapat
+                </button>
+              </div>
             </div>
           </div>
         )}
