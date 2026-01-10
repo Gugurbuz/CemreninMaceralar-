@@ -4,7 +4,7 @@
 
 ### 🎮 Core Gameplay
 - ✅ 4 Complete Levels (Uzun Kış, Kelebek Vadisi, Meyve Cenneti, Aurora Tapınağı)
-- ✅ Two-character co-op system with character switchingGGGG
+- ✅ Two-character co-op system with character switching
 - ✅ Solo and multiplayer modes
 - ✅ Full physics system with coyote time, jump buffering
 - ✅ Squash & stretch animations
