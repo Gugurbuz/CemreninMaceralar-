@@ -14,36 +14,57 @@ export interface Player {
   position: Vector2;
   velocity: Vector2;
   size: Size;
-  baseSize: Size; // Keep track of original size to fix shrinking bug
-  scale: Vector2; // New: For Squash and Stretch animation
+  baseSize: Size;
+  scale: Vector2;
   color: string;
   isGrounded: boolean;
   name: string;
   jumpForce: number;
   moveSpeed: number;
   facing: 'left' | 'right';
-  animFrame: number; // For walking animation cycle
+  animFrame: number;
   lives: number;
   isDead: boolean;
-  buff: { type: 'warmth'; timer: number } | null; // Buff state
-  invincibleTimer: number; // New: Flashing effect
-  activePowerUps: Array<{ type: PowerUp['type']; timer: number }>; // Multiple power-ups
-  hasDoubleJump: boolean; // For double jump power-up
-  deathProtection: boolean; // Hot chocolate death protection
-  iceThrowCooldown: number; // Cooldown for ice throw
+  buff: { type: 'warmth'; timer: number } | null;
+  invincibleTimer: number;
+  activePowerUps: Array<{ type: PowerUp['type']; timer: number }>;
+  hasDoubleJump: boolean;
+  deathProtection: boolean;
+  iceThrowCooldown: number;
 
-  // Game Feel Mechanics
-  coyoteTimer: number; // Frames allowing jump after leaving ground
-  jumpBufferTimer: number; // Frames remembering jump press before hitting ground
-  mushroomCooldown: number; // New: Prevent double bouncing on mushrooms
-  standingOn: Platform['type'] | null; // Track what the player is standing on
+  coyoteTimer: number;
+  jumpBufferTimer: number;
+  mushroomCooldown: number;
+  standingOn: Platform['type'] | null;
+
+  isWallSliding: boolean;
+  wallSlideDirection: 'left' | 'right' | null;
+  wallJumpCooldown: number;
+  canWallJump: boolean;
+
+  isDashing: boolean;
+  dashCooldown: number;
+  dashTimer: number;
+  dashDirection: Vector2;
+
+  isGroundPounding: boolean;
+  groundPoundCooldown: number;
+
+  isLedgeGrabbing: boolean;
+  ledgeGrabPlatform: Platform | null;
+
+  comboCount: number;
+  comboTimer: number;
+
+  reviveTimer: number;
+  canBeRevived: boolean;
 }
 
 export interface Platform {
   id?: number;
   position: Vector2;
   size: Size;
-  type: 'ground' | 'block' | 'pipe' | 'finish' | 'ice' | 'slippery' | 'crumbly' | 'door' | 'plate' | 'aurora' | 'leaf' | 'mushroom' | 'totem' | 'cloud' | 'moving' | 'spike' | 'timed_button' | 'conveyor' | 'toggle_platform';
+  type: 'ground' | 'block' | 'pipe' | 'finish' | 'ice' | 'slippery' | 'crumbly' | 'door' | 'plate' | 'aurora' | 'leaf' | 'mushroom' | 'totem' | 'cloud' | 'moving' | 'spike' | 'timed_button' | 'conveyor' | 'toggle_platform' | 'gravity_flip' | 'teleport_pad' | 'size_changer' | 'mirror' | 'rhythm' | 'destructible' | 'lava' | 'wind_zone' | 'bounce_pad' | 'laser' | 'gear';
   color: string;
   isPressed?: boolean;
   isOpen?: boolean;
@@ -68,6 +89,19 @@ export interface Platform {
   conveyorSpeed?: number;
   linkedPlatformIds?: number[];
   isVisible?: boolean;
+  teleportTargetId?: number;
+  sizeChangeType?: 'grow' | 'shrink';
+  rhythmBPM?: number;
+  rhythmPhase?: number;
+  health?: number;
+  maxHealth?: number;
+  windDirection?: Vector2;
+  windStrength?: number;
+  laserTimer?: number;
+  laserMaxTimer?: number;
+  laserActive?: boolean;
+  gearSpeed?: number;
+  gearDirection?: 1 | -1;
 }
 
 export interface Coin {
@@ -84,17 +118,17 @@ export interface PowerUp {
   id: number;
   position: Vector2;
   size: Size;
-  type: 'shield' | 'speed' | 'double_jump' | 'magnet' | 'star' | 'ice_throw' | 'giant';
+  type: 'shield' | 'speed' | 'double_jump' | 'magnet' | 'star' | 'ice_throw' | 'giant' | 'ghost' | 'time_slow' | 'clone' | 'grapple' | 'bomb' | 'flight' | 'laser_beam' | 'gravity_boots';
   collected: boolean;
   baseY: number;
-  duration: number; // frames
+  duration: number;
 }
 
 export interface Enemy {
   id: number;
   position: Vector2;
   size: Size;
-  type: 'slime' | 'snowman' | 'yeti' | 'bird' | 'boss' | 'shooter' | 'chaser' | 'jumper';
+  type: 'slime' | 'snowman' | 'yeti' | 'bird' | 'boss' | 'shooter' | 'chaser' | 'jumper' | 'ghost' | 'turret' | 'mimic' | 'shield_enemy' | 'bat' | 'spider' | 'golem' | 'eagle' | 'wind_elemental' | 'robot' | 'mini_boss';
   color: string;
   health?: number;
   maxHealth?: number;
@@ -102,7 +136,7 @@ export interface Enemy {
   attackTimer?: number;
   attackCooldown?: number;
   isAttacking?: boolean;
-  attackType?: 'slam' | 'dash' | 'projectile' | 'summon';
+  attackType?: 'slam' | 'dash' | 'projectile' | 'summon' | 'charge' | 'spin' | 'laser';
   isInvincible?: boolean;
   shieldActive?: boolean;
   originalX?: number;
@@ -122,6 +156,18 @@ export interface Enemy {
   isJumping?: boolean;
   velocityY?: number;
   frozenTimer?: number;
+  isVisible?: boolean;
+  fadeTimer?: number;
+  rotationAngle?: number;
+  isDisguised?: boolean;
+  shieldDirection?: 'front' | 'back';
+  chargeTimer?: number;
+  isCharging?: boolean;
+  spinTimer?: number;
+  isSpinning?: boolean;
+  laserCooldown?: number;
+  isFiringLaser?: boolean;
+  miniBossType?: 'cave_monster' | 'storm_lord' | 'giant_robot';
 }
 
 export interface Checkpoint {
@@ -191,7 +237,7 @@ export interface GameConfig {
 
 export interface GameState {
   level: number;
-  gameMode: 'solo' | 'multi';
+  gameMode: 'solo' | 'multi' | 'race' | 'coin_battle' | 'survival';
   runConfig: GameConfig;
   players: Player[];
   platforms: Platform[];
@@ -219,6 +265,45 @@ export interface GameState {
   cinematicMode: 'none' | 'aurora_suction' | 'nectar_rain';
   bossPhaseTransition: boolean;
   crystalsCollected: number;
+  gravityDirection: 1 | -1;
+  timeScale: number;
+  playerClones: Player[];
+  wallJumps: number;
+  dashesUsed: number;
+  groundPounds: number;
+  comboMultiplier: number;
+  maxCombo: number;
+  secretsFound: number;
+  miniBossesDefeated: number;
+  torchesLit: number;
+  lightsActive: boolean;
+}
+
+export interface DailyChallenge {
+  id: string;
+  date: string;
+  type: 'speed_run' | 'no_death' | 'coin_master' | 'enemy_hunter' | 'perfect_run';
+  level: number;
+  targetValue: number;
+  reward: number;
+  completed: boolean;
+}
+
+export interface ReplayFrame {
+  timestamp: number;
+  playerPositions: Vector2[];
+  playerVelocities: Vector2[];
+  inputs: { [key: string]: boolean };
+}
+
+export interface Replay {
+  id: string;
+  playerName: string;
+  level: number;
+  score: number;
+  frames: ReplayFrame[];
+  duration: number;
+  createdAt: string;
 }
 
 export interface InputState {

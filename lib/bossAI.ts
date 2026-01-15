@@ -114,6 +114,34 @@ export const updateBossAI = (
             }
         }
     }
+
+    else if (boss.phase === 4) {
+        boss.speed = 3.5;
+        boss.isInvincible = false;
+
+        const livingPlayers = gameState.players.filter(p => !p.isDead);
+        if (livingPlayers.length > 0) {
+            const target = livingPlayers[Math.floor(Math.random() * livingPlayers.length)];
+            const dx = target.position.x - boss.position.x;
+            boss.position.x += Math.sign(dx) * boss.speed;
+            boss.position.x = Math.max(arenaLeft, Math.min(arenaRight - boss.size.width, boss.position.x));
+        }
+
+        if (boss.attackTimer > 60 && !boss.attackCooldown) {
+            const attackRoll = Math.random();
+            if (attackRoll < 0.3) {
+                performSlam(boss, gameState, addFloatingText);
+                performProjectileAttack(boss, gameState, addFloatingText);
+            } else if (attackRoll < 0.6) {
+                performDash(boss, gameState, addFloatingText);
+                performSummon(boss, gameState, addFloatingText);
+            } else {
+                chooseAttack(boss, gameState, addFloatingText, ['slam', 'dash', 'projectile', 'summon']);
+            }
+            boss.attackTimer = 0;
+            boss.attackCooldown = 50;
+        }
+    }
 };
 
 const chooseAttack = (
@@ -300,15 +328,15 @@ export const handleBossHit = (
         return true;
     }
 
-    if (boss.phase === 1 && boss.health <= 8) {
+    if (boss.phase === 1 && boss.health <= 9) {
         boss.phase = 2;
         gameState.bossPhaseTransition = true;
         gameState.screenShake = 20;
-        addFloatingText(boss.position.x + 75, boss.position.y - 40, "FAZ 2: ÖFKELENDİ!", "#f59e0b");
+        addFloatingText(boss.position.x + 75, boss.position.y - 40, "FAZ 2: OFKELENDI!", "#f59e0b");
         return false;
     }
 
-    if (boss.phase === 2 && boss.health <= 4) {
+    if (boss.phase === 2 && boss.health <= 6) {
         boss.phase = 3;
         boss.shieldActive = true;
         boss.isInvincible = true;
@@ -318,6 +346,168 @@ export const handleBossHit = (
         return false;
     }
 
+    if (boss.phase === 3 && boss.health <= 3) {
+        boss.phase = 4;
+        boss.shieldActive = false;
+        boss.isInvincible = false;
+        gameState.bossPhaseTransition = true;
+        gameState.screenShake = 30;
+        addFloatingText(boss.position.x + 75, boss.position.y - 40, "FAZ 4: KAOS MODU!", "#ef4444");
+        return false;
+    }
+
+    return false;
+};
+
+export const updateMiniBossAI = (
+    miniBoss: Enemy,
+    gameState: GameState,
+    addFloatingText: (x: number, y: number, text: string, color: string) => void
+) => {
+    if (!miniBoss || miniBoss.type !== 'mini_boss') return;
+
+    if (miniBoss.hitFlash && miniBoss.hitFlash > 0) {
+        miniBoss.hitFlash--;
+    }
+
+    if (miniBoss.attackCooldown && miniBoss.attackCooldown > 0) {
+        miniBoss.attackCooldown--;
+    }
+
+    miniBoss.attackTimer = (miniBoss.attackTimer || 0) + 1;
+
+    const patrolLeft = (miniBoss.originalX || 0) - (miniBoss.patrolDistance || 200);
+    const patrolRight = (miniBoss.originalX || 0) + (miniBoss.patrolDistance || 200);
+
+    if (!miniBoss.isAttacking) {
+        miniBoss.position.x += (miniBoss.direction || 1) * (miniBoss.speed || 2);
+
+        if (miniBoss.position.x <= patrolLeft) {
+            miniBoss.direction = 1;
+        } else if (miniBoss.position.x >= patrolRight) {
+            miniBoss.direction = -1;
+        }
+    }
+
+    const livingPlayers = gameState.players.filter(p => !p.isDead);
+    if (livingPlayers.length > 0) {
+        const nearestPlayer = livingPlayers.reduce((nearest, player) => {
+            const distCurrent = Math.abs(player.position.x - miniBoss.position.x);
+            const distNearest = Math.abs(nearest.position.x - miniBoss.position.x);
+            return distCurrent < distNearest ? player : nearest;
+        });
+
+        const distToPlayer = Math.abs(nearestPlayer.position.x - miniBoss.position.x);
+
+        if (distToPlayer < 400 && miniBoss.attackTimer > 120 && !miniBoss.attackCooldown) {
+            if (miniBoss.miniBossType === 'cave_monster') {
+                performMiniBossSlam(miniBoss, gameState, addFloatingText);
+            } else if (miniBoss.miniBossType === 'storm_lord') {
+                performMiniBossProjectile(miniBoss, gameState, addFloatingText);
+            } else if (miniBoss.miniBossType === 'giant_robot') {
+                performMiniBossLaser(miniBoss, gameState, addFloatingText);
+            }
+            miniBoss.attackTimer = 0;
+            miniBoss.attackCooldown = 150;
+        }
+    }
+};
+
+const performMiniBossSlam = (
+    miniBoss: Enemy,
+    gameState: GameState,
+    addFloatingText: (x: number, y: number, text: string, color: string) => void
+) => {
+    miniBoss.isAttacking = true;
+    addFloatingText(miniBoss.position.x + 50, miniBoss.position.y - 20, "EZME!", "#ef4444");
+
+    const timeoutId = window.setTimeout(() => {
+        if (miniBoss.health && miniBoss.health > 0 && gameState.status === 'playing') {
+            gameState.screenShake = 8;
+            miniBoss.isAttacking = false;
+        }
+        bossAttackTimeouts = bossAttackTimeouts.filter(id => id !== timeoutId);
+    }, 600);
+    bossAttackTimeouts.push(timeoutId);
+};
+
+const performMiniBossProjectile = (
+    miniBoss: Enemy,
+    gameState: GameState,
+    addFloatingText: (x: number, y: number, text: string, color: string) => void
+) => {
+    miniBoss.isAttacking = true;
+    addFloatingText(miniBoss.position.x + 60, miniBoss.position.y - 20, "FIRTINA!", "#60a5fa");
+
+    for (let i = 0; i < 3; i++) {
+        const angle = (Math.PI / 6) + (i * (Math.PI / 3) / 2);
+        gameState.projectiles.push({
+            id: nextProjectileId++,
+            position: { x: miniBoss.position.x + miniBoss.size.width / 2, y: miniBoss.position.y + miniBoss.size.height / 2 },
+            velocity: { x: Math.cos(angle) * 4 * (miniBoss.direction || 1), y: Math.sin(angle) * 4 },
+            size: 15,
+            type: 'ice_ball',
+            damage: 1,
+            life: 120
+        });
+    }
+
+    const timeoutId = window.setTimeout(() => {
+        if (miniBoss.health && miniBoss.health > 0 && gameState.status === 'playing') {
+            miniBoss.isAttacking = false;
+        }
+        bossAttackTimeouts = bossAttackTimeouts.filter(id => id !== timeoutId);
+    }, 400);
+    bossAttackTimeouts.push(timeoutId);
+};
+
+const performMiniBossLaser = (
+    miniBoss: Enemy,
+    gameState: GameState,
+    addFloatingText: (x: number, y: number, text: string, color: string) => void
+) => {
+    miniBoss.isAttacking = true;
+    miniBoss.isFiringLaser = true;
+    addFloatingText(miniBoss.position.x + 65, miniBoss.position.y - 20, "LAZER!", "#f59e0b");
+
+    const laserProjectile = {
+        id: nextProjectileId++,
+        position: { x: miniBoss.position.x + (miniBoss.direction === 1 ? miniBoss.size.width : 0), y: miniBoss.position.y + miniBoss.size.height / 2 },
+        velocity: { x: 10 * (miniBoss.direction || 1), y: 0 },
+        size: 25,
+        type: 'shockwave' as const,
+        damage: 1,
+        life: 90
+    };
+    gameState.projectiles.push(laserProjectile);
+
+    const timeoutId = window.setTimeout(() => {
+        if (miniBoss.health && miniBoss.health > 0 && gameState.status === 'playing') {
+            miniBoss.isAttacking = false;
+            miniBoss.isFiringLaser = false;
+        }
+        bossAttackTimeouts = bossAttackTimeouts.filter(id => id !== timeoutId);
+    }, 500);
+    bossAttackTimeouts.push(timeoutId);
+};
+
+export const handleMiniBossHit = (
+    miniBoss: Enemy,
+    damage: number,
+    gameState: GameState,
+    addFloatingText: (x: number, y: number, text: string, color: string) => void
+): boolean => {
+    miniBoss.health = (miniBoss.health || 0) - damage;
+    miniBoss.hitFlash = 10;
+    gameState.screenShake = 5;
+
+    if (miniBoss.health <= 0) {
+        gameState.miniBossesDefeated = (gameState.miniBossesDefeated || 0) + 1;
+        addFloatingText(miniBoss.position.x + 50, miniBoss.position.y - 30, "YENILDI!", "#22c55e");
+        return true;
+    }
+
+    addFloatingText(miniBoss.position.x + 50, miniBoss.position.y - 20, `-${damage}`, "#ef4444");
     return false;
 };
 

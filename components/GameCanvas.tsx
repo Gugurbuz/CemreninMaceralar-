@@ -7,6 +7,9 @@ import {
   getButterflyPlatforms, getButterflyCoins, getButterflyEnemies, getButterflyCheckpoints, getButterflyPowerUps,
   getFruitParadisePlatforms, getFruitParadiseCoins, getFruitParadiseEnemies, getFruitParadiseCheckpoints, getFruitParadisePowerUps,
   getBossLevelPlatforms, getBossLevelCoins, getBossLevelEnemies, getBossLevelCheckpoints, getBossLevelPowerUps,
+  getDarkCavesPlatforms, getDarkCavesCoins, getDarkCavesEnemies, getDarkCavesCheckpoints, getDarkCavesPowerUps,
+  getSkyIslandsPlatforms, getSkyIslandsCoins, getSkyIslandsEnemies, getSkyIslandsCheckpoints, getSkyIslandsPowerUps,
+  getMechanicalFactoryPlatforms, getMechanicalFactoryCoins, getMechanicalFactoryEnemies, getMechanicalFactoryCheckpoints, getMechanicalFactoryPowerUps,
   INITIAL_RESPAWN_POINT,
   CANVAS_WIDTH, CANVAS_HEIGHT
 } from '../constants';
@@ -86,7 +89,6 @@ export const GameCanvas: React.FC = () => {
   const { completionData, updateCompletion, getTotalCompletion, isPerfectRun, reset: resetCompletion } = useCompletionTracking();
   const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>([]);
 
-  // Game State Refs
   const gameState = useRef<GameState>({
     level: 1,
     gameMode: 'multi',
@@ -116,7 +118,19 @@ export const GameCanvas: React.FC = () => {
     perfectJumps: 0,
     powerUpsUsed: 0,
     bossPhaseTransition: false,
-    crystalsCollected: 0
+    crystalsCollected: 0,
+    gravityDirection: 1,
+    timeScale: 1,
+    playerClones: [],
+    wallJumps: 0,
+    dashesUsed: 0,
+    groundPounds: 0,
+    comboMultiplier: 1,
+    maxCombo: 0,
+    secretsFound: 0,
+    miniBossesDefeated: 0,
+    torchesLit: 0,
+    lightsActive: true
   });
 
   const particles = useRef<Particle[]>([]);
@@ -336,6 +350,31 @@ export const GameCanvas: React.FC = () => {
           gameState.current.powerUps = getFruitParadisePowerUps();
           gameState.current.enemies = getFruitParadiseEnemies();
           gameState.current.checkpoints = getFruitParadiseCheckpoints();
+      } else if (level === 4) {
+          gameState.current.platforms = getBossLevelPlatforms();
+          gameState.current.coins = getBossLevelCoins();
+          gameState.current.powerUps = getBossLevelPowerUps();
+          gameState.current.enemies = getBossLevelEnemies();
+          gameState.current.checkpoints = getBossLevelCheckpoints();
+      } else if (level === 5) {
+          gameState.current.platforms = getDarkCavesPlatforms();
+          gameState.current.coins = getDarkCavesCoins();
+          gameState.current.powerUps = getDarkCavesPowerUps();
+          gameState.current.enemies = getDarkCavesEnemies();
+          gameState.current.checkpoints = getDarkCavesCheckpoints();
+          gameState.current.lightsActive = false;
+      } else if (level === 6) {
+          gameState.current.platforms = getSkyIslandsPlatforms();
+          gameState.current.coins = getSkyIslandsCoins();
+          gameState.current.powerUps = getSkyIslandsPowerUps();
+          gameState.current.enemies = getSkyIslandsEnemies();
+          gameState.current.checkpoints = getSkyIslandsCheckpoints();
+      } else if (level === 7) {
+          gameState.current.platforms = getMechanicalFactoryPlatforms();
+          gameState.current.coins = getMechanicalFactoryCoins();
+          gameState.current.powerUps = getMechanicalFactoryPowerUps();
+          gameState.current.enemies = getMechanicalFactoryEnemies();
+          gameState.current.checkpoints = getMechanicalFactoryCheckpoints();
       } else {
           gameState.current.platforms = getBossLevelPlatforms();
           gameState.current.coins = getBossLevelCoins();
@@ -592,11 +631,14 @@ export const GameCanvas: React.FC = () => {
   };
 
   const getLevelName = (lvl: number) => {
-      if (lvl === 1) return 'Bölüm 1: Kış Masalı';
-      if (lvl === 2) return 'Bölüm 2: Kelebek Vadisi';
-      if (lvl === 3) return 'Bölüm 3: Meyve Cenneti';
-      if (lvl === 4) return 'Bölüm 4: Aurora Koruyucusu';
-      return 'Bölüm ?';
+      if (lvl === 1) return 'Bolum 1: Kis Masali';
+      if (lvl === 2) return 'Bolum 2: Kelebek Vadisi';
+      if (lvl === 3) return 'Bolum 3: Meyve Cenneti';
+      if (lvl === 4) return 'Bolum 4: Aurora Koruyucusu';
+      if (lvl === 5) return 'Bolum 5: Karanlik Magaralar';
+      if (lvl === 6) return 'Bolum 6: Gokyuzu Adalari';
+      if (lvl === 7) return 'Bolum 7: Mekanik Fabrika';
+      return 'Bolum ?';
   }
 
   return (
@@ -871,49 +913,76 @@ export const GameCanvas: React.FC = () => {
 
             {menuStep === 'level_select' && (
                 <div className="flex flex-col items-center animate-fade-in">
-                    <h3 className="text-2xl font-bold mb-6">Bölüm Seç</h3>
-                    <div className="flex gap-8 items-center justify-center flex-wrap">
-                        <button 
+                    <h3 className="text-2xl font-bold mb-6">Bolum Sec</h3>
+                    <div className="flex gap-4 items-center justify-center flex-wrap max-w-4xl">
+                        <button
                           onClick={() => startNewGame(1)}
-                          className="px-8 py-6 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-2xl font-bold shadow-lg transform transition hover:scale-105 active:scale-95 flex flex-col items-center w-64 border-b-8 border-sky-800"
+                          className="px-6 py-4 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xl font-bold shadow-lg transform transition hover:scale-105 active:scale-95 flex flex-col items-center w-44 border-b-4 border-sky-800"
                         >
-                          <span className="text-4xl mb-2">❄️</span>
-                          <span>Bölüm 1</span>
-                          <span className="text-sm font-normal mt-1 opacity-90">Kış Masalı</span>
+                          <span className="text-3xl mb-1">❄️</span>
+                          <span>Bolum 1</span>
+                          <span className="text-xs font-normal opacity-90">Kis Masali</span>
                         </button>
 
-                        <button 
+                        <button
                           onClick={() => startNewGame(2)}
-                          className="px-8 py-6 bg-green-600 hover:bg-green-500 text-white rounded-xl text-2xl font-bold shadow-lg transform transition hover:scale-105 active:scale-95 flex flex-col items-center w-64 border-b-8 border-green-800"
+                          className="px-6 py-4 bg-green-600 hover:bg-green-500 text-white rounded-xl text-xl font-bold shadow-lg transform transition hover:scale-105 active:scale-95 flex flex-col items-center w-44 border-b-4 border-green-800"
                         >
-                          <span className="text-4xl mb-2">🦋</span>
-                          <span>Bölüm 2</span>
-                          <span className="text-sm font-normal mt-1 opacity-90">Kelebek Vadisi</span>
+                          <span className="text-3xl mb-1">🦋</span>
+                          <span>Bolum 2</span>
+                          <span className="text-xs font-normal opacity-90">Kelebek Vadisi</span>
                         </button>
-                        
+
                         <button
                           onClick={() => startNewGame(3)}
-                          className="px-8 py-6 bg-pink-500 hover:bg-pink-400 text-white rounded-xl text-2xl font-bold shadow-lg transform transition hover:scale-105 active:scale-95 flex flex-col items-center w-64 border-b-8 border-pink-800"
+                          className="px-6 py-4 bg-pink-500 hover:bg-pink-400 text-white rounded-xl text-xl font-bold shadow-lg transform transition hover:scale-105 active:scale-95 flex flex-col items-center w-44 border-b-4 border-pink-700"
                         >
-                          <span className="text-4xl mb-2">🍎</span>
-                          <span>Bölüm 3</span>
-                          <span className="text-sm font-normal mt-1 opacity-90">Meyve Cenneti</span>
+                          <span className="text-3xl mb-1">🍎</span>
+                          <span>Bolum 3</span>
+                          <span className="text-xs font-normal opacity-90">Meyve Cenneti</span>
                         </button>
 
                         <button
                           onClick={() => startNewGame(4)}
-                          className="px-8 py-6 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-2xl font-bold shadow-lg transform transition hover:scale-105 active:scale-95 flex flex-col items-center w-64 border-b-8 border-slate-900"
+                          className="px-6 py-4 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xl font-bold shadow-lg transform transition hover:scale-105 active:scale-95 flex flex-col items-center w-44 border-b-4 border-slate-900"
                         >
-                          <span className="text-4xl mb-2">👹</span>
-                          <span>Bölüm 4</span>
-                          <span className="text-sm font-normal mt-1 opacity-90">Aurora Koruyucusu</span>
+                          <span className="text-3xl mb-1">👹</span>
+                          <span>Bolum 4</span>
+                          <span className="text-xs font-normal opacity-90">Boss Savasi</span>
+                        </button>
+
+                        <button
+                          onClick={() => startNewGame(5)}
+                          className="px-6 py-4 bg-gray-800 hover:bg-gray-700 text-white rounded-xl text-xl font-bold shadow-lg transform transition hover:scale-105 active:scale-95 flex flex-col items-center w-44 border-b-4 border-gray-900"
+                        >
+                          <span className="text-3xl mb-1">🦇</span>
+                          <span>Bolum 5</span>
+                          <span className="text-xs font-normal opacity-90">Karanlik Magaralar</span>
+                        </button>
+
+                        <button
+                          onClick={() => startNewGame(6)}
+                          className="px-6 py-4 bg-blue-400 hover:bg-blue-300 text-white rounded-xl text-xl font-bold shadow-lg transform transition hover:scale-105 active:scale-95 flex flex-col items-center w-44 border-b-4 border-blue-600"
+                        >
+                          <span className="text-3xl mb-1">☁️</span>
+                          <span>Bolum 6</span>
+                          <span className="text-xs font-normal opacity-90">Gokyuzu Adalari</span>
+                        </button>
+
+                        <button
+                          onClick={() => startNewGame(7)}
+                          className="px-6 py-4 bg-zinc-600 hover:bg-zinc-500 text-white rounded-xl text-xl font-bold shadow-lg transform transition hover:scale-105 active:scale-95 flex flex-col items-center w-44 border-b-4 border-zinc-800"
+                        >
+                          <span className="text-3xl mb-1">⚙️</span>
+                          <span>Bolum 7</span>
+                          <span className="text-xs font-normal opacity-90">Mekanik Fabrika</span>
                         </button>
                     </div>
-                    <button 
+                    <button
                         onClick={() => setMenuStep('lives_select')}
-                        className="mt-8 text-gray-300 hover:text-white underline text-lg"
+                        className="mt-6 text-gray-300 hover:text-white underline text-lg"
                     >
-                        &lt; Geri Dön
+                        &lt; Geri Don
                     </button>
                 </div>
             )}
