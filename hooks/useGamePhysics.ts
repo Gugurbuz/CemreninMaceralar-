@@ -44,51 +44,12 @@ export const useGamePhysics = ({
     }
 
     const createDust = (x: number, y: number) => {
-        // Performance cap: Don't spawn if too many particles
-        if (effectParticles.current.length > 40) return;
-
-        for(let i=0; i<3; i++) {
-            effectParticles.current.push({
-                id: Math.random(),
-                x: x + (Math.random() - 0.5) * 20,
-                y: y,
-                vx: (Math.random() - 0.5) * 2,
-                vy: -Math.random() * 2 - 0.5,
-                life: 20, // Shorter life
-                maxLife: 20,
-                color: 'rgba(240, 240, 240, 0.6)',
-                size: Math.random() * 4 + 2,
-                type: 'dust'
-            });
-        }
     };
 
     const createSplash = (x: number, y: number) => {
-        if (effectParticles.current.length > 40) return;
-
-        for(let i=0; i<5; i++) {
-            effectParticles.current.push({
-                id: Math.random(),
-                x: x + (Math.random() - 0.5) * 10,
-                y: y,
-                vx: (Math.random() - 0.5) * 4,
-                vy: -Math.random() * 4 - 2,
-                life: 30,
-                maxLife: 30,
-                color: 'rgba(100, 200, 255, 0.8)',
-                size: Math.random() * 3 + 2,
-                type: 'splash'
-            });
-        }
     };
 
     const addFloatingText = (x: number, y: number, text: string, color: string) => {
-        gameState.current.floatingTexts.push({
-            id: Math.random(),
-            x, y, text, color,
-            life: 60,
-            vy: -1.5
-        });
     };
 
     const handlePlayerDamage = (p: Player) => {
