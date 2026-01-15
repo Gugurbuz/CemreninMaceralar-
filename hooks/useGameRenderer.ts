@@ -257,6 +257,9 @@ export const useGameRenderer = (
             ctx.drawImage(bgCanvasRef.current, 0, 0);
         }
 
+        // Layer 1.5: Aurora (Behind Mountains, appears late game)
+        drawAurora(ctx);
+
         // --- LAYER 2: MOUNTAINS (Moves at 10% speed) ---
         ctx.save();
         const parallaxX = -(camX * 0.1); 
@@ -339,7 +342,18 @@ export const useGameRenderer = (
 
     const drawPlayer = useCallback((ctx: CanvasRenderingContext2D, p: Player) => {
         if (p.invincibleTimer > 0 && Math.floor(gameState.current.globalTime / 4) % 2 === 0) {
-            return;
+            return; 
+        }
+  
+        // OPTIMIZED WARMTH BUFF RENDER
+        if (p.buff?.type === 'warmth') {
+            ctx.save();
+            ctx.globalAlpha = 0.4 + Math.sin(gameState.current.globalTime * 0.2) * 0.1;
+            ctx.fillStyle = '#fdba74';
+            ctx.beginPath();
+            ctx.arc(p.position.x + p.size.width/2, p.position.y + p.size.height/2, Math.max(p.size.width, p.size.height) * 1.2, 0, Math.PI*2);
+            ctx.fill();
+            ctx.restore();
         }
   
         const spriteSheet = sprites.current[p.id];
@@ -466,9 +480,18 @@ export const useGameRenderer = (
     const draw = useCallback((ctx: CanvasRenderingContext2D) => {
         // 1. Draw Parallax Background (Replaces simple drawBackground)
         drawParallax(ctx);
+        
+        drawParticles(ctx);
     
         ctx.save();
-        ctx.translate(-gameState.current.camera.x, 0);
+        
+        let shakeX = 0;
+        let shakeY = 0;
+        if (gameState.current.screenShake > 0) {
+            shakeX = (Math.random() - 0.5) * gameState.current.screenShake;
+            shakeY = (Math.random() - 0.5) * gameState.current.screenShake;
+        }
+        ctx.translate(-gameState.current.camera.x + shakeX, shakeY);
     
         gameState.current.platforms.forEach(plat => {
           if (plat.type === 'crumbly' && plat.isFalling && (plat.fallTimer || 0) <= 0) return;
@@ -1121,6 +1144,20 @@ export const useGameRenderer = (
             const px = powerUp.position.x;
             const py = powerUp.baseY + bob;
 
+            // Glow effect
+            ctx.save();
+            ctx.globalAlpha = 0.3 + Math.sin(gameState.current.globalTime * 0.2) * 0.2;
+            ctx.fillStyle = powerUp.type === 'shield' ? '#60a5fa' :
+                           powerUp.type === 'speed' ? '#fbbf24' :
+                           powerUp.type === 'double_jump' ? '#22c55e' :
+                           powerUp.type === 'magnet' ? '#a855f7' :
+                           powerUp.type === 'ice_throw' ? '#60a5fa' :
+                           powerUp.type === 'giant' ? '#f97316' : '#f97316';
+            ctx.beginPath();
+            ctx.arc(px, py, 25, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
             // Draw emoji for each power-up type
             ctx.save();
             ctx.font = '28px serif';
@@ -1145,6 +1182,14 @@ export const useGameRenderer = (
             const py = proj.position.y;
 
             if (proj.type === 'ice_ball') {
+                ctx.save();
+                const glow = ctx.createRadialGradient(px, py, 0, px, py, proj.size);
+                glow.addColorStop(0, 'rgba(96, 165, 250, 0.8)');
+                glow.addColorStop(1, 'rgba(96, 165, 250, 0)');
+                ctx.fillStyle = glow;
+                ctx.fillRect(px - proj.size, py - proj.size, proj.size * 2, proj.size * 2);
+                ctx.restore();
+
                 ctx.fillStyle = '#60a5fa';
                 ctx.beginPath();
                 ctx.arc(px, py, proj.size / 2, 0, Math.PI * 2);
@@ -1166,6 +1211,18 @@ export const useGameRenderer = (
                 ctx.stroke();
                 ctx.restore();
             } else if (proj.type === 'player_ice') {
+                // Player ice projectile with trail effect
+                ctx.save();
+                const trailGrad = ctx.createLinearGradient(
+                    px - proj.velocity.x * 2, py,
+                    px, py
+                );
+                trailGrad.addColorStop(0, 'rgba(147, 197, 253, 0)');
+                trailGrad.addColorStop(1, 'rgba(147, 197, 253, 0.6)');
+                ctx.fillStyle = trailGrad;
+                ctx.fillRect(px - proj.velocity.x * 2 - 5, py - 5, Math.abs(proj.velocity.x * 2) + 10, 10);
+                ctx.restore();
+
                 ctx.fillStyle = '#93c5fd';
                 ctx.beginPath();
                 ctx.arc(px, py, proj.size / 2, 0, Math.PI * 2);
@@ -1189,6 +1246,16 @@ export const useGameRenderer = (
 
             const cx = crystal.position.x - gameState.current.camera.x;
             const cy = crystal.position.y;
+            const glow = Math.sin(crystal.glowPhase) * 0.3 + 0.7;
+
+            ctx.save();
+            ctx.globalAlpha = 0.4 * glow;
+            const auraGradient = ctx.createRadialGradient(cx + 15, cy + 20, 0, cx + 15, cy + 20, 50);
+            auraGradient.addColorStop(0, '#a855f7');
+            auraGradient.addColorStop(1, 'rgba(168, 85, 247, 0)');
+            ctx.fillStyle = auraGradient;
+            ctx.fillRect(cx - 35, cy - 30, 100, 100);
+            ctx.restore();
 
             const gradient = ctx.createLinearGradient(cx, cy, cx, cy + crystal.size.height);
             gradient.addColorStop(0, '#c084fc');
@@ -1216,6 +1283,12 @@ export const useGameRenderer = (
         gameState.current.players.forEach(p => {
             if (!p.isDead) drawPlayer(ctx, p);
         });
+    
+        drawEffects(ctx); 
+        drawFloatingTexts(ctx); 
+        
+        // NEW: Draw Vignette on top of everything
+        drawVignette(ctx);
     
         ctx.restore();
     
